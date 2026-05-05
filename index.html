@@ -1,79 +1,187 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Investigador Pro | Links Directos</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Source Finder</title>
     <style>
-        :root { --p: #6366f1; --bg: #0f172a; --card: #1e293b; --txt: #f1f5f9; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--txt); display: flex; justify-content: center; padding: 20px; }
-        .box { width: 100%; max-width: 650px; background: var(--card); padding: 25px; border-radius: 15px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); }
-        h2 { text-align: center; font-size: 1.5rem; margin-bottom: 20px; color: var(--p); }
-        input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: white; margin-bottom: 15px; box-sizing: border-box; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        button { padding: 10px; border: none; border-radius: 6px; cursor: pointer; background: #334155; color: white; font-weight: bold; transition: 0.2s; }
-        button:hover { background: var(--p); }
-        .section-label { font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; margin: 15px 0 8px; font-weight: bold; border-bottom: 1px solid #334155; padding-bottom: 4px; }
-    </style>
-</head>
-<body>
+      :root {
+        --accent: #8b5cf6;
+        --bg: #050505;
+        --card: #111;
+        --text: #eee;
+      }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+      }
+      .container {
+        width: 100%;
+        max-width: 600px;
+        background: var(--card);
+        padding: 25px;
+        border-radius: 20px;
+        border: 1px solid #333;
+        align-self: center;
+      }
+      h1 {
+        font-size: 1.5rem;
+        text-align: center;
+        color: var(--accent);
+        margin-bottom: 20px;
+      }
+      input {
+        width: 100%;
+        padding: 15px;
+        background: #000;
+        border: 1px solid #444;
+        border-radius: 12px;
+        color: #fff;
+        margin-bottom: 15px;
+        box-sizing: border-box;
+        outline: none;
+      }
+      input:focus {
+        border-color: var(--accent);
+      }
+      .instruction {
+        font-size: 0.85rem;
+        color: #888;
+        margin-bottom: 15px;
+        text-align: center;
+      }
+      .btn-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+      button {
+        padding: 12px;
+        border: 1px solid #333;
+        border-radius: 10px;
+        cursor: pointer;
+        background: #1a1a1a;
+        color: #fff;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+      button:hover {
+        background: var(--accent);
+        border-color: var(--accent);
+        transform: translateY(-2px);
+      }
+      .source-tag {
+        font-size: 0.7rem;
+        display: block;
+        opacity: 0.7;
+        margin-top: 4px;
+        font-weight: normal;
+      }
 
-<div class="box">
-    <h2>🔍 Investigador de Fuentes Reales</h2>
-    <input type="text" id="query" placeholder="Ej: Energías renovables, Historia de Roma, PHP avanzado...">
-
-    <div class="section-label">Búsqueda Directa (Links Web)</div>
-    <div class="grid">
-        <button onclick="search('gov')">🏛️ Sitios Oficiales (.gov)</button>
-        <button onclick="search('news')">📰 Noticias y Prensa</button>
-        <button onclick="search('org')">🌐 Organizaciones (.org)</button>
-        <button onclick="search('edu')">🎓 Académico (.edu)</button>
-    </div>
-
-    <div class="section-label">Investigación de Archivos</div>
-    <div class="grid">
-        <button onclick="search('pdf')">📄 Libros/Reportes (PDF)</button>
-        <button onclick="search('data')">📊 Datos y Estadísticas</button>
-    </div>
-
-    <div class="section-label">Asistente IA (Generar Comando)</div>
-    <button style="width:100%; background: var(--p);" onclick="generateAIPrompt()">🤖 Crear Prompt para investigar con IA</button>
-    
-    <div id="ai-box" style="display:none; margin-top:15px; padding:12px; background:#0f172a; border-radius:8px; font-size:0.9rem; border: 1px dashed var(--p);">
-        <p id="prompt-text"></p>
-        <button onclick="copyPrompt()" style="width:100%; background:#22c55e; margin-top:10px;">Copiar Comando</button>
-    </div>
-</div>
-
-<script>
-    function search(type) {
-        const q = document.getElementById('query').value;
-        if(!q) return alert("Escribe un tema");
-        let url = "";
-        
-        switch(type) {
-            case 'gov': url = `https://www.google.com/search?q=site:.gov OR site:.gob "${q}"`; break;
-            case 'news': url = `https://www.google.com/search?q="${q}"&tbm=nws`; break;
-            case 'org': url = `https://www.google.com/search?q=site:.org "${q}"`; break;
-            case 'edu': url = `https://scholar.google.com/scholar?q=${q}`; break;
-            case 'pdf': url = `https://www.google.com/search?q=filetype:pdf "${q}"`; break;
-            case 'data': url = `https://www.google.com/search?q="${q}" (datos OR estadísticas OR datasets OR cifras)`; break;
+      /* Optimización Móvil */
+      @media (max-width: 600px) {
+        .btn-group {
+          grid-template-columns: 1fr;
         }
-        window.open(url, '_blank');
-    }
+        button {
+          padding: 15px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🚀 Investigador AI</h1>
 
-    function generateAIPrompt() {
-        const q = document.getElementById('query').value;
-        if(!q) return alert("Escribe un tema");
-        const prompt = `Investiga sobre "${q}". Por favor, no inventes información. Necesito que me proporciones una síntesis del tema y, OBLIGATORIAMENTE, una lista de al menos 5 enlaces (URLs) reales de sitios web oficiales, medios de comunicación reconocidos o bibliotecas digitales donde pueda validar la información. Verifica que los links funcionen actualmente.`;
-        document.getElementById('prompt-text').innerText = prompt;
-        document.getElementById('ai-box').style.display = 'block';
-    }
+      <input type="text" id="topic" placeholder="¿Qué quieres investigar?" />
 
-    function copyPrompt() {
-        navigator.clipboard.writeText(document.getElementById('prompt-text').innerText);
-        alert("¡Copiado! Pégalo en tu IA.");
-    }
-</script>
+      <p class="instruction">Motores de búsqueda con IA y fuentes:</p>
+      <div class="btn-group">
+        <button onclick="aiSearch('google')">
+          Google Search 🔍
+          <span class="source-tag">Resultados generales</span>
+        </button>
+        <button onclick="aiSearch('perplexity')">
+          Perplexity 🌐
+          <span class="source-tag">Citas y fuentes reales</span>
+        </button>
+        <button onclick="aiSearch('scholar')">
+          Google Scholar 🎓
+          <span class="source-tag">Artículos académicos</span>
+        </button>
+        <button onclick="aiSearch('brave')">
+          Brave AI 🦁
+          <span class="source-tag">Resumen privado</span>
+        </button>
+      </div>
 
-</body>
+      <p class="instruction">Consultas directas a Chatbots:</p>
+      <div class="btn-group" style="grid-template-columns: 1fr">
+        <button onclick="aiSearch('chatgpt')">
+          ChatGPT 🤖
+          <span class="source-tag">Análisis profundo y estructurado</span>
+        </button>
+        <button onclick="aiSearch('gemini')">
+          Gemini (Google) ✨
+          <span class="source-tag">Integración con datos de Google</span>
+        </button>
+      </div>
+    </div>
+
+    <script>
+      function aiSearch(engine) {
+        const query = document.getElementById("topic").value;
+        if (!query) {
+          alert("Por favor, escribe un tema.");
+          return;
+        }
+
+        const aiCommand = `proporciona información detallada sobre "${query}" incluyendo enlaces directos y reales a las fuentes originales, sitios web oficiales y documentos de referencia.`;
+        const encodedQuery = encodeURIComponent(query);
+        const encodedCommand = encodeURIComponent(aiCommand);
+
+        let url = "";
+
+        switch (engine) {
+          case "google":
+            url = `https://www.google.com/search?q=${encodedCommand}`;
+            break;
+          case "perplexity":
+            url = `https://www.perplexity.ai/search?q=${encodedCommand}`;
+            break;
+          case "brave":
+            url = `https://search.brave.com/search?q=${encodedCommand}&source=web`;
+            break;
+          case "scholar":
+            url = `https://scholar.google.com/scholar?q=${encodedQuery}`;
+            break;
+          case "chatgpt":
+            // Corregido: Ahora usa encodedCommand correctamente
+            url = `https://chatgpt.com/?q=${encodedCommand}`;
+            break;
+          case "gemini":
+            navigator.clipboard.writeText(aiCommand);
+            alert("El texto se copió. Pégalo en Gemini (Ctrl + V).");
+            url = "https://gemini.google.com/app";
+            break;
+        }
+
+        if (url) {
+          window.open(url, "_blank");
+        }
+      }
+    </script>
+  </body>
 </html>
