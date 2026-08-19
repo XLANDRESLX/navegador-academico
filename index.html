@@ -1,187 +1,870 @@
 <!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Source Finder</title>
-    <style>
-      :root {
-        --accent: #8b5cf6;
-        --bg: #050505;
-        --card: #111;
-        --text: #eee;
-      }
-      body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        padding: 20px;
-        display: flex;
-        justify-content: center;
-        min-height: 100vh;
-        margin: 0;
-      }
-      .container {
-        width: 100%;
-        max-width: 600px;
-        background: var(--card);
-        padding: 25px;
-        border-radius: 20px;
-        border: 1px solid #333;
-        align-self: center;
-      }
-      h1 {
-        font-size: 1.5rem;
-        text-align: center;
-        color: var(--accent);
-        margin-bottom: 20px;
-      }
-      input {
-        width: 100%;
-        padding: 15px;
-        background: #000;
-        border: 1px solid #444;
-        border-radius: 12px;
-        color: #fff;
-        margin-bottom: 15px;
-        box-sizing: border-box;
-        outline: none;
-      }
-      input:focus {
-        border-color: var(--accent);
-      }
-      .instruction {
-        font-size: 0.85rem;
-        color: #888;
-        margin-bottom: 15px;
-        text-align: center;
-      }
-      .btn-group {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-        margin-bottom: 20px;
-      }
-      button {
-        padding: 12px;
-        border: 1px solid #333;
-        border-radius: 10px;
-        cursor: pointer;
-        background: #1a1a1a;
-        color: #fff;
-        font-weight: 500;
-        transition: all 0.2s ease;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-      }
-      button:hover {
-        background: var(--accent);
-        border-color: var(--accent);
-        transform: translateY(-2px);
-      }
-      .source-tag {
-        font-size: 0.7rem;
-        display: block;
-        opacity: 0.7;
-        margin-top: 4px;
-        font-weight: normal;
-      }
 
-      /* Optimización Móvil */
-      @media (max-width: 600px) {
-        .btn-group {
-          grid-template-columns: 1fr;
-        }
-        button {
-          padding: 15px;
-        }
-      }
-    </style>
-  </head>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Estudio de Investigación</title>
+  <style>
+    :root {
+      --accent: #8b5cf6;
+      --bg: #09090b;
+      --card: #121215;
+      --border: #27272a;
+      --text: #f4f4f5;
+      --muted: #a1a1aa;
+      --input-bg: #000;
+      --chip-bg: #18181b;
+    }
+
+    [data-theme="light"] {
+      --accent: #7c3aed;
+      --bg: #f4f4f5;
+      --card: #fff;
+      --border: #e4e4e7;
+      --text: #18181b;
+      --muted: #71717a;
+      --input-bg: #fafafa;
+      --chip-bg: #f0f0f1;
+    }
+
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 680px;
+      background: var(--card);
+      padding: 30px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+      transition: background 0.3s, border-color 0.3s;
+    }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      text-align: center;
+      color: var(--accent);
+      margin: 0;
+    }
+
+    .theme-toggle {
+      background: var(--chip-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 1rem;
+      color: var(--text);
+      transition: 0.2s;
+    }
+
+    .theme-toggle:hover {
+      border-color: var(--accent);
+    }
+
+    .group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      box-sizing: border-box;
+      outline: none;
+      transition: border-color 0.2s, background 0.3s, color 0.3s;
+    }
+
+    textarea {
+      min-height: 100px;
+      max-height: 300px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      resize: vertical;
+      font-family: inherit;
+    }
+
+    .chips-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 10px;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      min-height: 50px;
+      transition: background 0.3s;
+    }
+
+    .chip {
+      display: flex;
+      align-items: center;
+      background: var(--chip-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: grab;
+      user-select: none;
+      transition: 0.2s;
+    }
+
+    .chip:active {
+      cursor: grabbing;
+    }
+
+    .chip.inactive {
+      opacity: 0.5;
+      border-style: dashed;
+    }
+
+    .chip .remove-btn {
+      margin-left: 8px;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .btn-add,
+    .btn-copy {
+      padding: 12px 20px;
+      background: #27272a;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: #fff;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    [data-theme="light"] .btn-add {
+      background: #e4e4e7;
+      color: #18181b;
+    }
+
+    .btn-copy {
+      width: 100%;
+      margin-top: 10px;
+      background: #8b5cf6;
+      border: none;
+      font-weight: 600;
+    }
+
+    .btn-copy:hover {
+      background: #7c3aed;
+    }
+
+    .section-title {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-top: 25px;
+    }
+
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .btn-engine {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      background: var(--chip-bg);
+      color: var(--text);
+      transition: 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .btn-engine:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .source-tag {
+      font-size: 0.7rem;
+      opacity: 0.7;
+      margin-top: 4px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      z-index: 999;
+      animation: toastIn 0.3s, toastOut 0.3s 1.7s forwards;
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    @keyframes toastOut {
+      from { opacity: 1; transform: translateX(-50%) translateY(0); }
+      to { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    }
+
+    .chip .check {
+      color: #22c55e;
+      font-weight: 700;
+      margin-right: 6px;
+      font-size: 0.85rem;
+    }
+
+    .chip.inactive .check {
+      display: none;
+    }
+
+    .chip.inactive .chip-name {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    .chip.dragging {
+      opacity: 0.4;
+    }
+
+    .chip.drag-over {
+      border-color: var(--accent);
+      border-style: dashed;
+    }
+
+    .btn-reset {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 0.78rem;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 0;
+      margin-top: 6px;
+    }
+
+    .btn-reset:hover {
+      color: var(--text);
+    }
+
+    .prompt-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .btn-download,
+    .btn-export,
+    .btn-import {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--chip-bg);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: 0.2s;
+      text-align: center;
+    }
+
+    .btn-download:hover,
+    .btn-export:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn-import:hover {
+      border-color: #22c55e;
+      color: #22c55e;
+    }
+
+    .prompt-stats {
+      text-align: right;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .history-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .history-chip {
+      display: inline-flex;
+      align-items: center;
+      background: transparent;
+      border: 1px dashed var(--border);
+      color: var(--muted);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .history-chip:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 8px 0 20px;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Focus styles */
+    input:focus,
+    textarea:focus,
+    select:focus,
+    .btn-engine:focus-visible,
+    .btn-add:focus-visible,
+    .btn-copy:focus-visible,
+    .btn-reset:focus-visible,
+    .theme-toggle:focus-visible,
+    .btn-download:focus-visible,
+    .btn-export:focus-visible,
+    .btn-import:focus-visible,
+    .chip:focus-visible,
+    .history-chip:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .chip:focus-visible {
+      outline-offset: 0;
+    }
+
+    #fileInput {
+      display: none;
+    }
+  </style>
+</head>
+
   <body>
-    <div class="container">
-      <h1>🚀 Investigador AI</h1>
-
-      <input type="text" id="topic" placeholder="¿Qué quieres investigar?" />
-
-      <p class="instruction">Motores de búsqueda con IA y fuentes:</p>
-      <div class="btn-group">
-        <button onclick="aiSearch('google')">
-          Google Search 🔍
-          <span class="source-tag">Resultados generales</span>
-        </button>
-        <button onclick="aiSearch('perplexity')">
-          Perplexity 🌐
-          <span class="source-tag">Citas y fuentes reales</span>
-        </button>
-        <button onclick="aiSearch('scholar')">
-          Google Scholar 🎓
-          <span class="source-tag">Artículos académicos</span>
-        </button>
-        <button onclick="aiSearch('brave')">
-          Brave AI 🦁
-          <span class="source-tag">Resumen privado</span>
-        </button>
-      </div>
-
-      <p class="instruction">Consultas directas a Chatbots:</p>
-      <div class="btn-group" style="grid-template-columns: 1fr">
-        <button onclick="aiSearch('chatgpt')">
-          ChatGPT 🤖
-          <span class="source-tag">Análisis profundo y estructurado</span>
-        </button>
-        <button onclick="aiSearch('gemini')">
-          Gemini (Google) ✨
-          <span class="source-tag">Integración con datos de Google</span>
-        </button>
-      </div>
+  <div class="container">
+    <div class="header-row">
+      <h1>Estudio de Investigación</h1>
+      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Cambiar tema">🌙</button>
+    </div>
+    <div class="group">
+      <label for="topic">Tema de investigación:</label>
+      <input type="text" id="topic" oninput="updatePrompt()" placeholder="Ej. Arquitectura MVC en PHP..." aria-label="Tema de investigación" />
+      <div id="historyContainer" class="history-container"></div>
     </div>
 
-    <script>
-      function aiSearch(engine) {
-        const query = document.getElementById("topic").value;
-        if (!query) {
-          alert("Por favor, escribe un tema.");
-          return;
+    <div class="group">
+      <label for="type">Tipo de investigación:</label>
+      <select id="type" onchange="updatePrompt()" aria-label="Tipo de investigación">
+        <option value="Cualitativa">Cualitativa</option>
+        <option value="Cuantitativa">Cuantitativa</option>
+        <option value="Mixta">Mixta</option>
+        <option value="Exploratoria">Exploratoria</option>
+        <option value="Descriptiva">Descriptiva</option>
+        <option value="Explicativa">Explicativa</option>
+      </select>
+    </div>
+
+    <div class="group">
+      <label>Estructura (Arrastra para reordenar, clic para activar/desactivar):</label>
+      <div id="chipsContainer" class="chips-container" role="list" aria-label="Estructura del informe"></div>
+    </div>
+    <div class="group" style="display:flex; flex-direction:column; gap:10px;">
+      <div style="display:flex; gap:10px;">
+        <input type="text" id="customInput" placeholder="Nueva sección..." aria-label="Nueva sección personalizada" />
+        <button class="btn-add" onclick="addStructure()" aria-label="Añadir sección">Añadir</button>
+      </div>
+      <button class="btn-reset" onclick="resetStructures()" aria-label="Restaurar estructura por defecto">Restaurar estructura por defecto</button>
+    </div>
+
+    <div class="group">
+      <label for="finalPrompt">Prompt Generado:</label>
+      <textarea id="finalPrompt" oninput="onPromptEdit()" aria-label="Prompt generado, editable"></textarea>
+      <div id="promptStats" class="prompt-stats"></div>
+      <button class="btn-copy" onclick="copyPrompt()" aria-label="Copiar prompt al portapapeles">📋 Copiar Prompt al Portapapeles</button>
+    </div>
+
+    <div class="prompt-actions">
+      <button class="btn-download" onclick="downloadPrompt()" aria-label="Descargar prompt como archivo de texto">⬇ Descargar .txt</button>
+      <button class="btn-export" onclick="exportConfig()" aria-label="Exportar configuración como JSON">📤 Exportar config</button>
+      <button class="btn-import" onclick="document.getElementById('fileInput').click()" aria-label="Importar configuración desde JSON">📥 Importar config</button>
+      <input type="file" id="fileInput" accept=".json" onchange="importConfig(event)" />
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-title">Motores de Búsqueda con IA</div>
+    <div class="btn-grid">
+      <button class="btn-engine" onclick="runSearch('google')" title="Búsqueda general en la web" aria-label="Buscar en Google">Google Search 🔍<span
+          class="source-tag">General</span></button>
+      <button class="btn-engine" onclick="runSearch('perplexity')" title="Respuestas con fuentes reales y verificables" aria-label="Buscar en Perplexity">Perplexity 🌐<span class="source-tag">Fuentes
+          reales</span></button>
+      <button class="btn-engine" onclick="runSearch('brave')" title="Búsqueda privada sin rastreo" aria-label="Buscar en Brave">Brave AI 🦁<span
+          class="source-tag">Privado</span></button>
+    </div>
+
+    <div class="section-title">Chatbots Directos</div>
+    <div class="btn-grid">
+      <button class="btn-engine" onclick="runSearch('chatgpt')" title="Análisis profundo y generación de texto" aria-label="Abrir ChatGPT">ChatGPT 🤖<span class="source-tag">Análisis
+          profundo</span></button>
+      <button class="btn-engine" onclick="runSearch('gemini')" title="Asistente de Google AI (se copia al portapapeles)" aria-label="Abrir Gemini">Gemini ✨<span class="source-tag">Copiar
+          comando</span></button>
+    </div>
+
+    <div class="footer">
+      Creado por <a href="https://github.com/XLANDRESLX" target="_blank" rel="noopener">Andrés Echeverría</a> · <a href="https://github.com/XLANDRESLX/navegador-academico" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+
+  <script>
+    const DEFAULT_STRUCTURES = [
+      { name: "Introducción", active: true },
+      { name: "Objetivos", active: true },
+      { name: "Marco Teórico", active: true },
+      { name: "Metodología", active: true },
+      { name: "Análisis y Desarrollo", active: true },
+      { name: "Conclusiones", active: true },
+      { name: "Referencias y Fuentes", active: true }
+    ];
+
+    const STORAGE_KEY = "navAcademico";
+    const HISTORY_KEY = "navAcademicoHistory";
+    const THEME_KEY = "navAcademicoTheme";
+    const MAX_HISTORY = 5;
+
+    let userEditingPrompt = false;
+
+    let structures = loadState().structures || JSON.parse(JSON.stringify(DEFAULT_STRUCTURES));
+
+    function showToast(msg) {
+      const existing = document.querySelector(".toast");
+      if (existing) existing.remove();
+      const t = document.createElement("div");
+      t.className = "toast";
+      t.textContent = msg;
+      document.body.appendChild(t);
+    }
+
+    function saveState() {
+      const data = {
+        structures,
+        topic: document.getElementById("topic").value,
+        type: document.getElementById("type").value
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : {};
+      } catch { return {}; }
+    }
+
+    function restoreState() {
+      const state = loadState();
+      if (state.topic) document.getElementById("topic").value = state.topic;
+      if (state.type) document.getElementById("type").value = state.type;
+    }
+
+    function resetStructures() {
+      structures = JSON.parse(JSON.stringify(DEFAULT_STRUCTURES));
+      render();
+      saveState();
+      showToast("Estructura restaurada por defecto.");
+    }
+
+    function getCommandText() {
+      const topic = document.getElementById("topic").value.trim() || "[Tu tema]";
+      const type = document.getElementById("type").value;
+      const activeList = structures.filter(s => s.active).map(s => s.name).join(", ");
+      return `Realiza una investigación profunda y rigurosa de tipo ${type} sobre "${topic}". 
+Es obligatorio que estructures tu respuesta siguiendo este orden exacto de apartados: ${activeList || 'Introducción, Desarrollo y Conclusiones'}. 
+REGLA ESTRICTA: Todas las fuentes, datos y enlaces web deben ser 100% reales y verificables. Prohibido inventar URLs. Si no estás seguro de un enlace, cita el nombre oficial de la entidad o documento original.`;
+    }
+
+    function autoResize(textarea) {
+      textarea.style.height = "auto";
+      const newH = Math.min(textarea.scrollHeight, 300);
+      textarea.style.height = newH + "px";
+    }
+
+    function updateStats(text) {
+      const chars = text.length;
+      const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+      document.getElementById("promptStats").textContent = `${chars.toLocaleString("es")} caracteres · ${words.toLocaleString("es")} palabras`;
+    }
+
+    function updatePrompt() {
+      if (userEditingPrompt) return;
+      const textarea = document.getElementById("finalPrompt");
+      const text = getCommandText();
+      textarea.value = text;
+      autoResize(textarea);
+      updateStats(text);
+      saveState();
+    }
+
+    function onPromptEdit() {
+      userEditingPrompt = true;
+      const textarea = document.getElementById("finalPrompt");
+      autoResize(textarea);
+      updateStats(textarea.value);
+    }
+
+    function copyPrompt() {
+      const text = document.getElementById("finalPrompt").value;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast("Prompt copiado al portapapeles.");
+      }).catch(() => {
+        const textarea = document.getElementById("finalPrompt");
+        textarea.select();
+        document.execCommand("copy");
+        showToast("Prompt copiado al portapapeles.");
+      });
+    }
+
+    function downloadPrompt() {
+      const text = document.getElementById("finalPrompt").value;
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "prompt-investigacion.txt";
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("Prompt descargado como .txt");
+    }
+
+    function exportConfig() {
+      const data = {
+        structures,
+        topic: document.getElementById("topic").value,
+        type: document.getElementById("type").value
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "config-nav-academico.json";
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("Configuración exportada.");
+    }
+
+    function importConfig(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (data.structures && Array.isArray(data.structures)) {
+            structures = data.structures;
+          }
+          if (data.topic !== undefined) {
+            document.getElementById("topic").value = data.topic;
+          }
+          if (data.type !== undefined) {
+            document.getElementById("type").value = data.type;
+          }
+          userEditingPrompt = false;
+          render();
+          saveState();
+          showToast("Configuración importada correctamente.");
+        } catch {
+          showToast("Error: archivo JSON no válido.");
         }
+      };
+      reader.readAsText(file);
+      event.target.value = "";
+    }
 
-        const aiCommand = `proporciona información detallada sobre "${query}" incluyendo enlaces directos y reales a las fuentes originales, sitios web oficiales y documentos de referencia.`;
-        const encodedQuery = encodeURIComponent(query);
-        const encodedCommand = encodeURIComponent(aiCommand);
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isLight = html.getAttribute("data-theme") === "light";
+      if (isLight) {
+        html.removeAttribute("data-theme");
+        document.getElementById("themeToggle").textContent = "🌙";
+        localStorage.setItem(THEME_KEY, "dark");
+      } else {
+        html.setAttribute("data-theme", "light");
+        document.getElementById("themeToggle").textContent = "☀️";
+        localStorage.setItem(THEME_KEY, "light");
+      }
+    }
 
-        let url = "";
+    function initTheme() {
+      const saved = localStorage.getItem(THEME_KEY);
+      const prefersLight = window.matchMedia("(prefers-color-scheme: light)").matches;
+      const useLight = saved ? saved === "light" : prefersLight;
+      if (useLight) {
+        document.documentElement.setAttribute("data-theme", "light");
+        document.getElementById("themeToggle").textContent = "☀️";
+      }
+    }
 
-        switch (engine) {
-          case "google":
-            url = `https://www.google.com/search?q=${encodedCommand}`;
-            break;
-          case "perplexity":
-            url = `https://www.perplexity.ai/search?q=${encodedCommand}`;
-            break;
-          case "brave":
-            url = `https://search.brave.com/search?q=${encodedCommand}&source=web`;
-            break;
-          case "scholar":
-            url = `https://scholar.google.com/scholar?q=${encodedQuery}`;
-            break;
-          case "chatgpt":
-            // Corregido: Ahora usa encodedCommand correctamente
-            url = `https://chatgpt.com/?q=${encodedCommand}`;
-            break;
-          case "gemini":
-            navigator.clipboard.writeText(aiCommand);
-            alert("El texto se copió. Pégalo en Gemini (Ctrl + V).");
-            url = "https://gemini.google.com/app";
-            break;
-        }
+    function render() {
+      const container = document.getElementById("chipsContainer");
+      container.innerHTML = "";
+      structures.forEach((item, index) => {
+        const chip = document.createElement("div");
+        chip.className = `chip ${item.active ? "" : "inactive"}`;
+        chip.draggable = true;
+        const checkSpan = document.createElement("span");
+        checkSpan.className = "check";
+        checkSpan.textContent = "✓";
+        const nameSpan = document.createElement("span");
+        nameSpan.className = "chip-name";
+        nameSpan.textContent = item.name;
+        nameSpan.onclick = () => toggle(index);
+        const removeSpan = document.createElement("span");
+        removeSpan.className = "remove-btn";
+        removeSpan.textContent = "✕";
+        removeSpan.onclick = (e) => { e.stopPropagation(); remove(index); };
+        chip.appendChild(checkSpan);
+        chip.appendChild(nameSpan);
+        chip.appendChild(removeSpan);
 
-        if (url) {
-          window.open(url, "_blank");
+        chip.ondragstart = (e) => {
+          e.dataTransfer.setData("index", index);
+          chip.classList.add("dragging");
+        };
+        chip.ondragend = () => chip.classList.remove("dragging");
+        chip.ondragover = (e) => e.preventDefault();
+        chip.ondrop = (e) => {
+          const from = parseInt(e.dataTransfer.getData("index"));
+          if (from !== index) {
+            [structures[from], structures[index]] = [structures[index], structures[from]];
+          }
+          render();
+        };
+
+        chip.addEventListener("touchstart", (e) => {
+          const touch = e.touches[0];
+          touchState = { from: index, startX: touch.clientX, startY: touch.clientY, moved: false, ghost: null, fromEl: chip };
+          chip.classList.add("dragging");
+        }, { passive: true });
+
+        container.appendChild(chip);
+      });
+      updatePrompt();
+    }
+
+    let touchState = null;
+
+    document.addEventListener("touchmove", (e) => {
+      if (!touchState) return;
+      const touch = e.touches[0];
+      const dx = Math.abs(touch.clientX - touchState.startX);
+      const dy = Math.abs(touch.clientY - touchState.startY);
+      if (!touchState.moved && (dx > 10 || dy > 10)) {
+        touchState.moved = true;
+        const ghost = touchState.fromEl.cloneNode(true);
+        ghost.style.position = "fixed";
+        ghost.style.pointerEvents = "none";
+        ghost.style.zIndex = "1000";
+        ghost.style.opacity = "0.85";
+        ghost.style.width = touchState.fromEl.offsetWidth + "px";
+        document.body.appendChild(ghost);
+        touchState.ghost = ghost;
+      }
+      if (touchState.ghost) {
+        touchState.ghost.style.left = (touch.clientX - 40) + "px";
+        touchState.ghost.style.top = (touch.clientY - 20) + "px";
+      }
+      const target = document.elementFromPoint(touch.clientX, touch.clientY);
+      document.querySelectorAll(".chip.drag-over").forEach(c => c.classList.remove("drag-over"));
+      if (target) {
+        const chipEl = target.closest(".chip");
+        if (chipEl && chipEl !== touchState.fromEl) {
+          chipEl.classList.add("drag-over");
         }
       }
-    </script>
-  </body>
+    }, { passive: true });
+
+    document.addEventListener("touchend", (e) => {
+      if (!touchState) return;
+      document.querySelectorAll(".chip.dragging").forEach(c => c.classList.remove("dragging"));
+      document.querySelectorAll(".chip.drag-over").forEach(c => c.classList.remove("drag-over"));
+      if (touchState.ghost) touchState.ghost.remove();
+      if (touchState.moved) {
+        const touch = e.changedTouches[0];
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (target) {
+          const chipEl = target.closest(".chip");
+          if (chipEl) {
+            const chips = [...document.querySelectorAll("#chipsContainer .chip")];
+            const toIndex = chips.indexOf(chipEl);
+            if (toIndex !== -1 && toIndex !== touchState.from) {
+              [structures[touchState.from], structures[toIndex]] = [structures[toIndex], structures[touchState.from]];
+              render();
+            }
+          }
+        }
+      }
+      touchState = null;
+    });
+
+    function toggle(i) { structures[i].active = !structures[i].active; userEditingPrompt = false; render(); saveState(); }
+    function remove(i) { structures.splice(i, 1); userEditingPrompt = false; render(); saveState(); }
+    function addStructure() {
+      const input = document.getElementById("customInput");
+      const val = input.value.trim();
+      if (!val) return;
+      const exists = structures.some(s => s.name.toLowerCase() === val.toLowerCase());
+      if (exists) {
+        showToast(`"${val}" ya existe en la estructura.`);
+        return;
+      }
+      structures.push({ name: val, active: true });
+      input.value = "";
+      userEditingPrompt = false;
+      render();
+      saveState();
+    }
+
+    document.getElementById("customInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); addStructure(); }
+    });
+
+    function saveSearch(topic) {
+      let history = loadSearchHistory();
+      history = history.filter(h => h.toLowerCase() !== topic.toLowerCase());
+      history.unshift(topic);
+      if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    }
+
+    function loadSearchHistory() {
+      try {
+        const raw = localStorage.getItem(HISTORY_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch { return []; }
+    }
+
+    function renderHistory() {
+      const container = document.getElementById("historyContainer");
+      const history = loadSearchHistory();
+      if (history.length === 0) { container.innerHTML = ""; return; }
+      container.innerHTML = "";
+      const label = document.createElement("span");
+      label.textContent = "Recientes:";
+      label.style.cssText = "font-size:0.75rem; color:var(--muted); margin-right:4px; align-self:center;";
+      container.appendChild(label);
+      history.forEach(topic => {
+        const chip = document.createElement("span");
+        chip.className = "history-chip";
+        chip.textContent = topic;
+        chip.tabIndex = 0;
+        chip.setAttribute("role", "button");
+        chip.setAttribute("aria-label", `Usar tema: ${topic}`);
+        chip.onclick = () => useSearch(topic);
+        chip.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); useSearch(topic); } };
+        container.appendChild(chip);
+      });
+    }
+
+    function useSearch(topic) {
+      document.getElementById("topic").value = topic;
+      userEditingPrompt = false;
+      updatePrompt();
+      document.getElementById("topic").focus();
+    }
+
+    function runSearch(engine) {
+      const topic = document.getElementById("topic").value.trim();
+      if (!topic) { showToast("Escribe un tema."); document.getElementById("topic").focus(); return; }
+      saveSearch(topic);
+      renderHistory();
+      const command = getCommandText();
+      const urlMap = {
+        google: `https://www.google.com/search?q=${encodeURIComponent(command)}`,
+        perplexity: `https://www.perplexity.ai/search?q=${encodeURIComponent(command)}`,
+        brave: `https://search.brave.com/ask?q=${encodeURIComponent(command)}`
+      };
+      if (engine === 'chatgpt' || engine === 'gemini') {
+        const name = engine === 'chatgpt' ? 'ChatGPT' : 'Gemini';
+        navigator.clipboard.writeText(command).then(() => {
+          showToast(`Prompt copiado. Pegalo en ${name}.`);
+        }).catch(() => {
+          showToast(`No se pudo copiar. Copia el prompt manualmente y pegalo en ${name}.`);
+        });
+        window.open(`https://${engine === 'chatgpt' ? 'chatgpt.com' : 'gemini.google.com/app'}`, "_blank");
+        return;
+      }
+      window.open(urlMap[engine], "_blank");
+    }
+
+    initTheme();
+    restoreState();
+    renderHistory();
+    render();
+  </script>
+</body>
+
 </html>
