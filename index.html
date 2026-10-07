@@ -105,21 +105,37 @@
     }
     .history-chip:hover{color:var(--text);border-color:var(--accent)}
 
-    .chips-container{display:flex;flex-wrap:wrap;gap:8px;min-height:58px;padding:10px;border:1px dashed var(--border);border-radius:14px;background:rgba(255,255,255,.015)}
-    .chip{
-      display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:12px;
-      border:1px solid var(--border);background:var(--card2);cursor:grab;user-select:none;
-      font-size:.79rem;max-width:100%;transition:.15s
+    .chips-container{
+      display:flex;flex-direction:column;gap:7px;min-height:58px;padding:10px;
+      border:1px dashed var(--border);border-radius:14px;background:rgba(255,255,255,.015)
     }
-    .chip:hover{border-color:var(--accent);transform:translateY(-1px)}
+    .chip{
+      display:grid;grid-template-columns:32px minmax(0,1fr) auto;align-items:center;gap:9px;
+      padding:8px 10px;border-radius:12px;border:1px solid var(--border);
+      background:var(--card2);user-select:none;font-size:.79rem;transition:.15s
+    }
+    .chip:hover{border-color:var(--accent)}
     .chip.inactive{opacity:.48}
-    .chip.dragging{opacity:.42}
-    .chip.drag-over{border-color:var(--accent);box-shadow:0 0 0 2px rgba(110,168,254,.18)}
-    .check{display:grid;place-items:center;width:18px;height:18px;border-radius:6px;background:rgba(88,214,141,.17);color:var(--ok);font-size:.7rem;font-weight:900}
+    .chip-number{
+      display:grid;place-items:center;width:28px;height:28px;border-radius:8px;
+      background:rgba(110,168,254,.11);color:var(--accent);font-size:.72rem;font-weight:900
+    }
+    .chip-main{display:flex;align-items:center;gap:9px;min-width:0;cursor:pointer}
+    .check{
+      display:grid;place-items:center;width:18px;height:18px;border-radius:6px;
+      background:rgba(88,214,141,.17);color:var(--ok);font-size:.7rem;font-weight:900;flex:0 0 auto
+    }
     .inactive .check{background:rgba(158,176,201,.12);color:var(--muted)}
     .chip-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .remove-btn{color:var(--muted);cursor:pointer;font-weight:900;padding-left:2px}
-    .remove-btn:hover{color:var(--danger)}
+    .chip-controls{display:flex;align-items:center;gap:4px}
+    .move-btn,.remove-btn{
+      width:31px;height:31px;border:1px solid var(--border);border-radius:8px;
+      display:grid;place-items:center;background:transparent;color:var(--muted);
+      cursor:pointer;font:inherit;font-weight:900;transition:.15s
+    }
+    .move-btn:hover:not(:disabled){color:var(--text);border-color:var(--accent);background:rgba(110,168,254,.08)}
+    .move-btn:disabled{opacity:.28;cursor:not-allowed}
+    .remove-btn:hover{color:var(--danger);border-color:rgba(255,107,122,.35);background:rgba(255,107,122,.07)}
     .drag-note{font-size:.74rem;color:var(--muted);margin-top:7px}
 
     .inline-actions{display:flex;gap:9px;flex-wrap:wrap}
@@ -315,9 +331,9 @@
 
         <div id="structurePanel">
           <div class="section-title">2. Estructura del trabajo</div>
-          <label>Arrastra para reordenar · clic para activar/desactivar</label>
+          <label>Usa ▲ y ▼ para reordenar · clic en la sección para activar/desactivar</label>
           <div id="chipsContainer" class="chips-container" role="list" aria-label="Estructura del trabajo"></div>
-          <div class="drag-note">Las secciones desactivadas no se incluirán en el prompt.</div>
+          <div class="drag-note">Las secciones desactivadas no se incluirán en el prompt. El orden de la lista será el orden del prompt.</div>
 
           <div class="group" style="margin-top:13px">
             <div class="inline-actions">
@@ -598,12 +614,19 @@
   function renderStructures(){
     const container = $("chipsContainer");
     container.innerHTML = "";
+
     structures.forEach((item,index)=>{
       const chip = document.createElement("div");
       chip.className = "chip " + (item.active ? "" : "inactive");
-      chip.draggable = true;
-      chip.setAttribute("role","listitem");
       chip.dataset.index = index;
+
+      const number = document.createElement("span");
+      number.className = "chip-number";
+      number.textContent = index + 1;
+
+      const main = document.createElement("div");
+      main.className = "chip-main";
+      main.title = "Clic para activar/desactivar";
 
       const check = document.createElement("span");
       check.className = "check";
@@ -612,88 +635,64 @@
       const name = document.createElement("span");
       name.className = "chip-name";
       name.textContent = item.name;
-      name.title = "Clic para activar/desactivar";
-      name.onclick = ()=>toggleStructure(index);
 
-      const remove = document.createElement("span");
+      main.append(check,name);
+      main.onclick = () => toggleStructure(index);
+
+      const controls = document.createElement("div");
+      controls.className = "chip-controls";
+
+      const up = document.createElement("button");
+      up.className = "move-btn";
+      up.type = "button";
+      up.textContent = "▲";
+      up.title = "Subir sección";
+      up.setAttribute("aria-label", `Subir ${item.name}`);
+      up.disabled = index === 0;
+      up.onclick = (e) => {
+        e.stopPropagation();
+        moveStructure(index,-1);
+      };
+
+      const down = document.createElement("button");
+      down.className = "move-btn";
+      down.type = "button";
+      down.textContent = "▼";
+      down.title = "Bajar sección";
+      down.setAttribute("aria-label", `Bajar ${item.name}`);
+      down.disabled = index === structures.length - 1;
+      down.onclick = (e) => {
+        e.stopPropagation();
+        moveStructure(index,1);
+      };
+
+      const remove = document.createElement("button");
       remove.className = "remove-btn";
+      remove.type = "button";
       remove.textContent = "✕";
       remove.title = "Eliminar sección";
-      remove.onclick = e => {e.stopPropagation(); removeStructure(index)};
+      remove.setAttribute("aria-label", `Eliminar ${item.name}`);
+      remove.onclick = (e) => {
+        e.stopPropagation();
+        removeStructure(index);
+      };
 
-      chip.append(check,name,remove);
-
-      chip.addEventListener("dragstart", e => {
-        dragState = {index};
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain",String(index));
-        chip.classList.add("dragging");
-      });
-      chip.addEventListener("dragend", ()=>{
-        chip.classList.remove("dragging");
-        dragState = null;
-      });
-      chip.addEventListener("dragover", e => {
-        e.preventDefault();
-        chip.classList.add("drag-over");
-      });
-      chip.addEventListener("dragleave", ()=>chip.classList.remove("drag-over"));
-      chip.addEventListener("drop", e => {
-        e.preventDefault();
-        chip.classList.remove("drag-over");
-        const from = Number(e.dataTransfer.getData("text/plain"));
-        const to = index;
-        if(Number.isInteger(from) && from !== to){
-          [structures[from],structures[to]]=[structures[to],structures[from]];
-          userEditingPrompt=false;
-          renderStructures();
-          generatePrompt();
-          saveState();
-        }
-      });
-
-      // Touch / mobile reorder: tap-hold then move over another chip.
-      chip.addEventListener("touchstart", e => {
-        const t = e.touches[0];
-        dragState = {index,startX:t.clientX,startY:t.clientY,moved:false,ghost:null};
-      },{passive:true});
-
+      controls.append(up,down,remove);
+      chip.append(number,main,controls);
       container.appendChild(chip);
     });
   }
 
-  document.addEventListener("touchmove", e=>{
-    if(!dragState) return;
-    const t=e.touches[0];
-    const dx=Math.abs(t.clientX-dragState.startX), dy=Math.abs(t.clientY-dragState.startY);
-    if(!dragState.moved && (dx>8 || dy>8)){
-      dragState.moved=true;
-    }
-    if(!dragState.moved) return;
-    const target=document.elementFromPoint(t.clientX,t.clientY)?.closest(".chip");
-    document.querySelectorAll(".chip.drag-over").forEach(c=>c.classList.remove("drag-over"));
-    if(target) target.classList.add("drag-over");
-  },{passive:true});
+  function moveStructure(index, direction){
+    const target = index + direction;
+    if(index < 0 || index >= structures.length || target < 0 || target >= structures.length) return;
 
-  document.addEventListener("touchend", e=>{
-    if(!dragState) return;
-    const from=dragState.index;
-    const moved=dragState.moved;
-    document.querySelectorAll(".chip.drag-over").forEach(c=>c.classList.remove("drag-over"));
-    if(moved){
-      const t=e.changedTouches[0];
-      const target=document.elementFromPoint(t.clientX,t.clientY)?.closest(".chip");
-      const to=target ? Number(target.dataset.index) : -1;
-      if(to>=0 && to!==from){
-        [structures[from],structures[to]]=[structures[to],structures[from]];
-        userEditingPrompt=false;
-        renderStructures();
-        generatePrompt();
-        saveState();
-      }
-    }
-    dragState=null;
-  },{passive:true});
+    [structures[index],structures[target]] = [structures[target],structures[index]];
+    userEditingPrompt = false;
+    renderStructures();
+    generatePrompt();
+    saveState();
+  }
 
   function toggleStructure(i){
     structures[i].active=!structures[i].active;
