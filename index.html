@@ -141,6 +141,10 @@
     .prompt-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:10px}
     .prompt-actions button{width:100%}
 
+    .basic-box{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--border);background:var(--card2);border-radius:14px;padding:14px;color:var(--muted);font-size:.8rem;line-height:1.55}
+    .basic-box strong{display:block;color:var(--text);font-size:.88rem;margin-bottom:4px}
+    .basic-box p{margin:0}
+    .basic-icon{display:grid;place-items:center;width:38px;height:38px;flex:0 0 38px;border-radius:11px;background:rgba(110,168,254,.13);font-size:1.05rem}
     .desc{
       border:1px solid var(--border);background:var(--card2);border-radius:13px;padding:11px 12px;
       margin-top:9px;color:var(--muted);font-size:.78rem;line-height:1.5
@@ -309,16 +313,29 @@
 
         <div class="desc" id="typeDescription"></div>
 
-        <div class="section-title">2. Estructura del trabajo</div>
-        <label>Arrastra para reordenar · clic para activar/desactivar</label>
-        <div id="chipsContainer" class="chips-container" role="list" aria-label="Estructura del trabajo"></div>
-        <div class="drag-note">Las secciones desactivadas no se incluirán en el prompt.</div>
+        <div id="structurePanel">
+          <div class="section-title">2. Estructura del trabajo</div>
+          <label>Arrastra para reordenar · clic para activar/desactivar</label>
+          <div id="chipsContainer" class="chips-container" role="list" aria-label="Estructura del trabajo"></div>
+          <div class="drag-note">Las secciones desactivadas no se incluirán en el prompt.</div>
 
-        <div class="group" style="margin-top:13px">
-          <div class="inline-actions">
-            <input id="customInput" type="text" placeholder="Nueva sección personalizada..." />
-            <button class="action btn-add" onclick="addStructure()">Añadir sección</button>
-            <button class="action btn-reset" onclick="resetStructures()">Restaurar estructura</button>
+          <div class="group" style="margin-top:13px">
+            <div class="inline-actions">
+              <input id="customInput" type="text" placeholder="Nueva sección personalizada..." />
+              <button class="action btn-add" onclick="addStructure()">Añadir sección</button>
+              <button class="action btn-reset" onclick="resetStructures()">Restaurar estructura</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="basicModeInfo" class="basic-mode-info" hidden>
+          <div class="section-title">2. Investigación libre</div>
+          <div class="basic-box">
+            <div class="basic-icon">🔎</div>
+            <div>
+              <strong>Sin estructura académica fija</strong>
+              <p>La IA debe decidir qué aspectos son importantes según el tema. No debe forzar Introducción, Justificación, Marco teórico, Metodología o Conclusiones si no aportan valor. La investigación debe ser detallada, profunda, organizada por los temas que realmente correspondan y sustentada con fuentes verificables.</p>
+            </div>
           </div>
         </div>
 
@@ -406,6 +423,7 @@
 
 <script>
   const STRUCTURES = {
+    "Investigación básica": [],
     "Ensayo": ["Introducción","Desarrollo","Conclusión","Referencias"],
     "Investigación": ["Introducción","Planteamiento del problema","Justificación","Objetivos","Marco teórico","Metodología","Resultados","Discusión","Conclusiones","Referencias","Anexos"],
     "Monografía": ["Introducción","Planteamiento del tema","Objetivos","Marco teórico","Desarrollo","Análisis","Conclusiones","Referencias","Anexos"],
@@ -429,6 +447,7 @@
   };
 
   const TYPE_DESC = {
+    "Investigación básica":"Modo de investigación libre y detallado: no utiliza una estructura académica fija. La respuesta se organiza según los aspectos realmente importantes del tema investigado.",
     "Ensayo":"Texto académico centrado en desarrollar y explicar ideas sobre un tema, con introducción, desarrollo, conclusión y fuentes.",
     "Investigación":"Estructura completa para formular un problema, fundamentarlo, explicar la metodología, presentar resultados y discutirlos.",
     "Monografía":"Estudio documental y organizado de un tema específico, con desarrollo y análisis sustentados en fuentes.",
@@ -550,18 +569,27 @@
     structures = Array.isArray(s.structures) && s.structures.length ? s.structures : cloneStructure(STRUCTURES[$("workType").value]);
   }
 
+  function updateModeUI(){
+    const basic = $("workType").value === "Investigación básica";
+    $("structurePanel").hidden = basic;
+    $("basicModeInfo").hidden = !basic;
+  }
+
   function syncTypeStructure(force=false){
     const type = $("workType").value;
-    if(force || !structures?.length){
-      structures = cloneStructure(STRUCTURES[type]);
-    }
+    if(type === "Investigación básica") structures = [];
+    else if(force || !structures?.length) structures = cloneStructure(STRUCTURES[type]);
     $("typeDescription").textContent = TYPE_DESC[type] || "";
+    updateModeUI();
     renderStructures();
   }
 
   function handleTypeChange(){
-    structures = cloneStructure(STRUCTURES[$("workType").value]);
+    const type = $("workType").value;
+    structures = type === "Investigación básica" ? [] : cloneStructure(STRUCTURES[type]);
     userEditingPrompt = false;
+    $("typeDescription").textContent = TYPE_DESC[type] || "";
+    updateModeUI();
     renderStructures();
     generatePrompt();
     saveState();
@@ -785,10 +813,11 @@
     const question=$("question").value.trim() || "[FORMULAR O REFINAR SI ES NECESARIO]";
     const depth=$("depth").value;
     const active=getActiveSections();
+    const basicMode = type === "Investigación básica";
 
     const structureBlock = active.length
       ? active.map((s,i)=>`${i+1}. ${s}\n   Instrucción: ${sectionInstructions(s)}`).join("\n")
-      : "No hay secciones activas. Propón una estructura académica adecuada antes de desarrollar el contenido.";
+      : "No hay secciones académicas predefinidas. La organización debe surgir del tema y de la evidencia encontrada.";
 
     const rules=[];
     if($("realSources").checked) rules.push("No inventes autores, artículos, libros, DOI, estadísticas, nombres de instituciones ni URLs. Toda referencia citada debe existir y poder verificarse.");
@@ -803,7 +832,52 @@
     rules.push(`La respuesta final debe estar redactada en ${language} y adaptada a un nivel ${level}.`);
     rules.push(`Mantén una profundidad ${depth}, con razonamiento académico, buena conexión entre secciones y sin texto de relleno.`);
 
-    const prompt = `Actúa como un investigador académico experto y realiza una investigación ${approach.toLowerCase()} sobre el siguiente tema:
+    const prompt = basicMode ? `Actúa como un investigador experto y realiza una investigación básica pero profunda y detallada sobre el siguiente tema:
+
+“TEMA: ${topic}”
+
+CONTEXTO:
+${context}
+
+PREGUNTA O INTERÉS ESPECÍFICO:
+${question}
+
+ENFOQUE:
+${approach}
+
+NIVEL DEL LECTOR:
+${level}
+
+OBJETIVO DEL MODO “INVESTIGACIÓN BÁSICA”:
+Investiga directamente lo que sea relevante para comprender el tema solicitado. NO conviertas la respuesta en un trabajo académico tradicional y NO impongas una plantilla fija. No agregues Introducción, Justificación, Objetivos, Marco teórico, Metodología, Conclusiones u otras secciones académicas solo porque existan en modelos de trabajos universitarios. Usa únicamente la organización que aporte valor al tema.
+
+FORMA DE INVESTIGAR:
+1. Analiza primero qué aspectos, preguntas, hechos, conceptos, antecedentes, actores, fechas, datos, causas, consecuencias, comparaciones o debates son relevantes para el tema.
+2. Organiza la respuesta mediante apartados dinámicos creados específicamente para el contenido investigado.
+3. Profundiza en cada aspecto importante y evita dedicar espacio a elementos secundarios solo para hacer la respuesta más larga.
+4. Incluye fechas exactas, cifras, nombres, documentos, leyes, decisiones, acontecimientos o ejemplos cuando sean relevantes y puedan verificarse.
+5. Explica relaciones de causa, contexto y consecuencias cuando la evidencia permita establecerlas.
+6. Cuando existan distintas interpretaciones o posiciones, compáralas de forma equilibrada y explica en qué evidencia se apoya cada una.
+7. Puedes usar cronologías, tablas comparativas, listas, mapas conceptuales en texto o matrices cuando mejoren la comprensión.
+8. No confundas hechos con opiniones o inferencias. Señala claramente qué está comprobado y qué es interpretación.
+9. No rellenes vacíos de información con suposiciones. Cuando una cuestión no pueda confirmarse, indícalo.
+10. Mantén la investigación centrada exclusivamente en el tema solicitado.
+
+REGLAS DE FUENTES Y CALIDAD:
+${rules.map((r,i)=>`${i+1}. ${r}`).join("\n")}
+
+ESTILO DE RESPUESTA:
+- Responde en ${language}.
+- Mantén una profundidad ${depth}.
+- Sé claro, preciso y detallado, sin texto de relleno.
+- No repitas información con palabras diferentes.
+- Incluye las fuentes junto con las afirmaciones importantes y una relación final de referencias cuando corresponda.
+- Prioriza siempre la trazabilidad de la información.
+
+ANTES DE FINALIZAR:
+Revisa toda la investigación para detectar datos dudosos, contradicciones, fuentes débiles, información posiblemente desactualizada y aspectos que deberían verificarse. No inventes ningún dato ni referencia.`
+
+: `Actúa como un investigador académico experto y realiza una investigación ${approach.toLowerCase()} sobre el siguiente tema:
 
 “TEMA: ${topic}”
 
@@ -1064,6 +1138,7 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
   initTheme();
   restoreState();
   $("typeDescription").textContent=TYPE_DESC[$("workType").value] || "";
+  updateModeUI();
   renderHistory();
   renderStructures();
   bindInputs();
