@@ -4,7 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="dark light" />
-  <title>Generador de Prompts de Investigación</title>
+  <meta name="theme-color" content="#0a0f18">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <title>Navegador Académico · Espacio de investigación</title>
+  <meta name="description" content="Organiza proyectos académicos y crea prompts de investigación.">
   <style>
     :root{
       --bg:#0a0f18;
@@ -21,6 +25,7 @@
       --shadow:0 18px 45px rgba(0,0,0,.26);
       --radius:18px;
       --input:#0c1422;
+      --on-accent:#06101f;
     }
     [data-theme="light"]{
       --bg:#eef3f9;
@@ -28,14 +33,15 @@
       --card:rgba(255,255,255,.95);
       --card2:#f2f6fc;
       --text:#172236;
-      --muted:#64748b;
+      --muted:#56657a;
       --border:rgba(30,41,59,.12);
       --accent:#2563eb;
       --accent2:#7c3aed;
-      --ok:#0f9f5a;
-      --danger:#dc3545;
+      --ok:#0b7a45;
+      --danger:#c42b3b;
       --shadow:0 18px 45px rgba(38,52,77,.12);
       --input:#f8fafc;
+      --on-accent:#fff;
     }
 
     *{box-sizing:border-box}
@@ -43,6 +49,7 @@
     body{
       margin:0;
       min-height:100vh;
+      min-height:100dvh;
       font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       color:var(--text);
       background:
@@ -144,9 +151,9 @@
       transition:.16s
     }
     button.action:hover{transform:translateY(-1px)}
-    .btn-add{background:var(--accent);color:white}
+    .btn-add{background:var(--accent);color:var(--on-accent)}
     .btn-reset{background:transparent;color:var(--muted);border:1px solid var(--border)!important}
-    .btn-copy{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;width:100%;margin-top:10px}
+    .btn-copy{background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--on-accent);width:100%;margin-top:10px}
     .btn-download{background:rgba(88,214,141,.14);color:var(--ok);border:1px solid rgba(88,214,141,.24)!important}
     .btn-export,.btn-import{background:var(--card2);color:var(--text);border:1px solid var(--border)!important}
     #fileInput{display:none}
@@ -154,7 +161,7 @@
     .prompt-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
     .prompt-stats{font-size:.74rem;color:var(--muted);margin-top:7px}
     #finalPrompt{min-height:410px}
-    .prompt-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:10px}
+    .prompt-actions{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:10px}
     .prompt-actions button{width:100%}
 
     .basic-box{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--border);background:var(--card2);border-radius:14px;padding:14px;color:var(--muted);font-size:.8rem;line-height:1.55}
@@ -195,6 +202,19 @@
       color:var(--text);font-size:.82rem;max-width:min(360px,calc(100% - 32px))
     }
 
+
+    .app-nav{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 18px;padding:8px;border:1px solid var(--border);border-radius:16px;background:var(--card);box-shadow:var(--shadow)}
+    .nav-btn{display:flex;align-items:center;gap:8px;border:1px solid transparent;border-radius:11px;padding:10px 14px;background:transparent;color:var(--muted);font:inherit;font-size:.86rem;font-weight:800;cursor:pointer}
+    .nav-btn:hover{background:var(--card2);color:var(--text)}.nav-btn.active{background:rgba(110,168,254,.14);border-color:rgba(110,168,254,.28);color:var(--accent)}
+    .view[hidden]{display:none!important}.view{animation:fadeIn .18s ease-out}@keyframes fadeIn{from{opacity:.6;transform:translateY(3px)}to{opacity:1;transform:none}}
+    .hero{position:relative;overflow:hidden}.hero:after{content:"";position:absolute;width:220px;height:220px;border-radius:50%;right:-90px;top:-120px;background:rgba(110,168,254,.1);pointer-events:none}
+    .hero-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.primary-btn,.secondary-btn,.danger-btn{border:1px solid var(--border);border-radius:11px;padding:10px 14px;font:inherit;font-size:.84rem;font-weight:800;cursor:pointer;background:var(--card2);color:var(--text)}.primary-btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--on-accent);border-color:transparent}.danger-btn{color:var(--danger)}
+    .dashboard-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:18px}.metric-card{padding:18px;border:1px solid var(--border);border-radius:16px;background:var(--card);box-shadow:var(--shadow)}.metric-label{color:var(--muted);font-size:.8rem;font-weight:700}.metric-value{font-size:1.7rem;font-weight:900;letter-spacing:-.04em;margin-top:7px}
+    .view-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:0 0 16px}.view-heading h2{margin:0 0 5px;font-size:1.35rem}.view-heading p{margin:0;color:var(--muted);font-size:.88rem;line-height:1.5}
+    .project-toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px}.project-toolbar input{flex:1;min-width:180px}.project-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.project-card{border:1px solid var(--border);border-radius:15px;background:var(--card);padding:16px;min-width:0}.project-card h3{font-size:1rem;margin:0 0 7px;overflow-wrap:anywhere}.project-card p{font-size:.82rem;color:var(--muted);line-height:1.5;margin:0 0 13px}.project-meta{font-size:.73rem;color:var(--muted);margin-bottom:13px}.project-actions{display:flex;gap:7px;flex-wrap:wrap}.project-actions button{font-size:.77rem;padding:8px 10px}.empty-state{border:1px dashed var(--border);border-radius:15px;padding:28px 18px;text-align:center;color:var(--muted);background:var(--card)}.empty-state strong{display:block;color:var(--text);margin:8px 0}
+    .resource-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.resource-card{padding:20px;border:1px solid var(--border);border-radius:16px;background:var(--card)}.resource-card h3{margin:10px 0 6px}.resource-card p{color:var(--muted);font-size:.85rem;line-height:1.55}.mini-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:rgba(110,168,254,.13);font-size:1.15rem}.app-footer{text-align:center;color:var(--muted);font-size:.76rem;margin-top:22px}
+    @media(max-width:680px){.app-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.nav-btn{justify-content:flex-start;padding:10px}.dashboard-grid,.project-grid,.resource-grid{grid-template-columns:1fr}.view-heading{flex-direction:column}.hero-row{align-items:flex-start}.hero-actions>*{flex:1}.project-toolbar>*{min-width:100%}}
+
     @media (max-width: 900px){
       .layout{grid-template-columns:1fr}
       #finalPrompt{min-height:330px}
@@ -209,28 +229,78 @@
       .chip{width:100%;cursor:pointer}
       .inline-actions>*{flex:1 1 100%}
     }
+    /* ---------- mejoras: accesibilidad, diálogos, toasts, utilidades ---------- */
+    :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+    .skip-link{position:absolute;left:12px;top:-60px;z-index:10000;background:var(--card2);color:var(--text);
+      border:1px solid var(--border);padding:10px 14px;border-radius:10px;font-weight:800;text-decoration:none}
+    .skip-link:focus{top:12px}
+    .view:focus{outline:none}
+    .sr-copy{position:fixed;left:-9999px;top:0;opacity:0}
+    .span-all{grid-column:1/-1}
+    .mt-13{margin-top:13px}.mt-16{margin-top:16px}.mt-18{margin-top:18px}
+    .metric-value.is-compact{font-size:1.15rem}
+    .history-label{font-size:.73rem;color:var(--muted);align-self:center}
+    .empty-icon{font-size:1.8rem}
+    .empty-actions{margin-top:14px}
+    .list-count{font-size:.78rem;color:var(--muted);margin:-4px 0 10px}
+    .badge{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid var(--border);
+      background:var(--card2);font-size:.7rem;font-weight:800;color:var(--muted);vertical-align:middle}
+    .badge.ok{color:var(--ok);border-color:rgba(88,214,141,.35)}
+    .toast-region{position:fixed;right:16px;bottom:16px;z-index:9999;display:flex;flex-direction:column;
+      align-items:flex-end;max-width:min(380px,calc(100% - 32px))}
+    .toast-region .toast{position:static;display:flex;align-items:center;gap:12px}
+    .toast-action{border:1px solid var(--border);background:var(--card2);color:var(--accent);font:inherit;
+      font-weight:800;border-radius:9px;padding:6px 10px;cursor:pointer;flex:0 0 auto}
+    .project-toolbar select{width:auto;flex:0 1 200px;min-width:150px}
+    .notice{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;
+      padding:12px 14px;border:1px solid rgba(255,193,7,.4);border-radius:14px;background:rgba(255,193,7,.08);font-size:.86rem}
+    .notice[hidden]{display:none}
+    .notice-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .project-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;
+      padding:12px 16px;border:1px solid var(--border);border-radius:14px;background:var(--card)}
+    .project-bar.is-warning{border-color:rgba(255,193,7,.45);background:rgba(255,193,7,.07)}
+    .project-bar-label{display:block;font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+    .project-bar strong{overflow-wrap:anywhere}
+    .project-bar-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .project-bar-actions [hidden]{display:none}
+    .preset-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+    .preset-bar select{flex:1 1 200px;width:auto}
+    .preset-bar button{font-size:.77rem;padding:8px 10px}
+    .preset-bar button:disabled{opacity:.4;cursor:not-allowed}
+    .chip-main:focus-visible{outline-offset:3px;border-radius:8px}
+    dialog{width:min(640px,calc(100% - 24px));max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);padding:0;
+      border:1px solid var(--border);border-radius:var(--radius);background:var(--bg2);color:var(--text);box-shadow:var(--shadow)}
+    dialog::backdrop{background:rgba(0,0,0,.55)}
+    .dialog-form{padding:20px}
+    .dialog-form h2{margin:0 0 16px;font-size:1.1rem}
+    .dialog-form textarea{min-height:90px}
+    .dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;flex-wrap:wrap}
+    .nowrap-row{display:flex;gap:8px}
+    .nowrap-row input{flex:1;min-width:0}
+    .form-error{color:var(--danger);font-size:.82rem;min-height:1.2em;margin:8px 0 0;font-weight:700}
+    @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+    @media(max-width:680px){.dialog-form .two-col,.dialog-form .three-col{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
-  <main class="container">
-    <section class="hero">
-      <div class="hero-row">
-        <div>
-          <span class="eyebrow">📚 Investigación académica · Generador de prompts</span>
-          <h1>Generador de Prompts de Investigación</h1>
-          <p class="subtitle">
-            Selecciona el tipo de trabajo, define el enfoque y personaliza la estructura.
-            El sistema construye un prompt detallado para investigar con fuentes reales,
-            verificables y organizadas.
-          </p>
-        </div>
-        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Cambiar tema">🌙</button>
-      </div>
-    </section>
-
-    <div class="layout">
+  <a class="skip-link" href="#main">Saltar al contenido</a>
+  <main class="container" id="main" tabindex="-1">
+    <section class="hero"><div class="hero-row"><div><span class="eyebrow">📚 TU ESPACIO DE INVESTIGACIÓN</span><h1>Navegador Académico</h1><p class="subtitle">Organiza tus trabajos, prepara investigaciones rigurosas y conserva tus avances en un espacio de trabajo sencillo y ligero.</p><div class="hero-actions"><button type="button" class="primary-btn" data-action="go-view" data-target="generator">＋ Crear investigación</button><button type="button" class="secondary-btn" data-action="go-view" data-target="projects">Ver mis proyectos</button></div></div><button type="button" class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Cambiar tema">🌙</button></div></section>
+    <nav class="app-nav" role="tablist" aria-label="Secciones de la aplicación"><button type="button" class="nav-btn active" role="tab" id="tab-home" data-view="home" aria-controls="homeView" aria-selected="true" tabindex="0">⌂ Inicio</button><button type="button" class="nav-btn" role="tab" id="tab-projects" data-view="projects" aria-controls="projectsView" aria-selected="false" tabindex="-1">▣ Proyectos</button><button type="button" class="nav-btn" role="tab" id="tab-generator" data-view="generator" aria-controls="generatorView" aria-selected="false" tabindex="-1">✎ Generador</button><button type="button" class="nav-btn" role="tab" id="tab-templates" data-view="templates" aria-controls="templatesView" aria-selected="false" tabindex="-1">▤ Plantillas</button><button type="button" class="nav-btn" role="tab" id="tab-bibliography" data-view="bibliography" aria-controls="bibliographyView" aria-selected="false" tabindex="-1">◫ Bibliografía</button></nav>
+    <section class="view" id="homeView" role="tabpanel" aria-labelledby="tab-home" tabindex="-1"><div id="backupBanner" class="notice" hidden><span id="backupBannerText"></span><div class="notice-actions"><button type="button" class="primary-btn" data-action="export-backup">Exportar copia ahora</button><button type="button" class="secondary-btn" data-action="snooze-backup">Recordármelo en 7 días</button></div></div><div class="dashboard-grid"><div class="metric-card"><div class="metric-label">Proyectos guardados</div><div class="metric-value" id="projectCount">0</div></div><div class="metric-card"><div class="metric-label">Plantillas disponibles</div><div class="metric-value" id="templateCount">20</div></div><div class="metric-card"><div class="metric-label">Estado</div><div class="metric-value is-compact" id="homeSaveStatus">Listo para trabajar</div></div></div><div class="view-heading"><div><h2>Continúa tu trabajo</h2><p>Abre un proyecto existente o crea una investigación nueva.</p></div><button type="button" class="primary-btn" data-action="new-project">＋ Nuevo proyecto</button></div><div id="recentProjects" class="project-grid"></div><div class="resource-grid mt-16"><article class="resource-card"><div class="mini-icon">✎</div><h3>Generador académico</h3><p>Define tema, enfoque, nivel, fuentes, estructura y criterios de calidad para construir un prompt personalizado.</p><button type="button" class="secondary-btn" data-action="go-view" data-target="generator">Abrir generador →</button></article><article class="resource-card"><div class="mini-icon">✓</div><h3>Investiga con rigor</h3><p>Solicita referencias comprobables, distingue evidencia de interpretación y revisa los documentos originales antes de citar.</p><button type="button" class="secondary-btn" data-action="go-view" data-target="bibliography">Organizar fuentes →</button></article></div></section>
+    <section class="view" id="projectsView" role="tabpanel" aria-labelledby="tab-projects" tabindex="-1" hidden><div class="view-heading"><div><h2>Mis proyectos</h2><p>Cada proyecto conserva su configuración y el prompt editado.</p></div><button type="button" class="primary-btn" data-action="new-project">＋ Nuevo proyecto</button></div><div class="project-toolbar"><input id="projectSearch" type="search" placeholder="Buscar proyecto por nombre o tema…" aria-label="Buscar proyectos"><button type="button" class="secondary-btn" data-action="export-backup">Exportar copia</button><button type="button" class="secondary-btn" onclick="document.getElementById('projectImport').click()">Importar copia</button><input type="file" id="projectImport" accept=".json,application/json" hidden></div><div id="allProjects" class="project-grid"></div></section>
+    <section class="view" id="templatesView" role="tabpanel" aria-labelledby="tab-templates" tabindex="-1" hidden><div class="view-heading"><div><h2>Plantillas académicas</h2><p>Empieza con una estructura adecuada para el tipo de trabajo.</p></div></div><div id="templateGrid" class="project-grid"></div></section>
+    <section class="view" id="bibliographyView" role="tabpanel" aria-labelledby="tab-bibliography" tabindex="-1" hidden><div class="view-heading"><div><h2>Bibliografía</h2><p>Registra fuentes y vincúlalas a tus investigaciones. El registro no implica verificación automática.</p></div><button type="button" class="primary-btn" data-action="add-source">＋ Añadir fuente</button></div><div class="project-toolbar"><input id="sourceSearch" type="search" placeholder="Buscar por título, autor o DOI…" aria-label="Buscar fuentes"><select id="sourceProjectFilter" aria-label="Filtrar por proyecto"></select><select id="citeStyle" aria-label="Norma para copiar y exportar citas"><option>APA 7</option><option>MLA 9</option><option>IEEE</option><option>Vancouver</option></select><select id="exportFormat" aria-label="Exportar bibliografía"><option value="">Exportar…</option><option value="bibtex">BibTeX (.bib)</option><option value="ris">RIS (Zotero, Mendeley, EndNote)</option><option value="csv">CSV (Excel)</option><option value="text">Copiar bibliografía formateada</option><option value="json">Respaldo JSON</option></select><button type="button" class="secondary-btn" onclick="document.getElementById('sourceImport').click()">Importar JSON</button><input type="file" id="sourceImport" accept=".json,application/json" hidden></div><div class="list-count" id="sourceCount" aria-live="polite"></div><div id="sourceList" class="project-grid"></div></section>
+    <section class="view" id="generatorView" role="tabpanel" aria-labelledby="tab-generator" tabindex="-1" hidden><div class="project-bar" id="projectBar"><div><span class="project-bar-label" id="projectBarLabel">Proyecto activo</span><strong id="projectBarName">—</strong></div><div class="project-bar-actions"><button type="button" class="secondary-btn" id="projectBarRename" data-action="rename-active">Renombrar</button><button type="button" class="secondary-btn" id="projectBarSources" data-action="sources-active">Fuentes</button><button type="button" class="primary-btn" id="projectBarSave" data-action="save-as-project" hidden>Guardar como proyecto</button></div></div><div class="layout">
       <section class="card">
         <h2>1. Configura la investigación</h2>
+
+        <div class="preset-bar">
+          <select id="presetSelect" aria-label="Configuraciones guardadas"></select>
+          <button type="button" class="secondary-btn" id="presetApply" disabled>Aplicar</button>
+          <button type="button" class="secondary-btn" id="presetSave">Guardar actual</button>
+          <button type="button" class="danger-btn" id="presetDelete" disabled>Eliminar</button>
+        </div>
 
         <div class="group">
           <label for="topic">Tema de investigación</label>
@@ -335,7 +405,7 @@
           <div id="chipsContainer" class="chips-container" role="list" aria-label="Estructura del trabajo"></div>
           <div class="drag-note">Las secciones desactivadas no se incluirán en el prompt. El orden de la lista será el orden del prompt.</div>
 
-          <div class="group" style="margin-top:13px">
+          <div class="group mt-13">
             <div class="inline-actions">
               <input id="customInput" type="text" placeholder="Nueva sección personalizada..." />
               <button class="action btn-add" onclick="addStructure()">Añadir sección</button>
@@ -385,6 +455,7 @@
 
         <div class="prompt-actions">
           <button class="action btn-download" onclick="downloadPrompt()">⬇ Descargar .txt</button>
+          <button class="action btn-download" onclick="exportMarkdown()">⬇ Descargar .md</button>
           <button class="action btn-export" onclick="exportConfig()">📤 Exportar JSON</button>
           <button class="action btn-import" onclick="document.getElementById('fileInput').click()">📥 Importar JSON</button>
           <input type="file" id="fileInput" accept=".json,application/json" onchange="importConfig(event)" />
@@ -425,17 +496,64 @@
           </div>
         </div>
 
-        <div class="desc" style="margin-top:18px">
+        <div class="desc mt-18">
           <strong>Consejo:</strong> para una investigación seria, revisa las fuentes que entregue la IA,
           abre los documentos originales y conserva los enlaces/DOI reales antes de citar.
         </div>
       </section>
-    </div>
-
-    <footer class="footer">
-      Generador académico · HTML, CSS y JavaScript · Guarda tu configuración en este navegador
-    </footer>
+    </div></section>
+    <footer class="app-footer">Navegador Académico · HTML, CSS y JavaScript · Los datos se guardan localmente en este navegador.</footer>
   </main>
+
+  <div id="toastRegion" class="toast-region" role="status" aria-live="polite"></div>
+
+  <dialog id="sourceDialog" aria-labelledby="sourceDialogTitle">
+    <form id="sourceForm" class="dialog-form" novalidate>
+      <h2 id="sourceDialogTitle">Añadir fuente</h2>
+      <div class="group">
+        <label for="srcDoi">DOI (opcional)</label>
+        <div class="nowrap-row">
+          <input id="srcDoi" type="text" inputmode="url" autocomplete="off" placeholder="10.1000/xyz123">
+          <button type="button" class="secondary-btn" id="srcDoiFetch">Autocompletar</button>
+        </div>
+        <span class="hint" id="srcDoiHint"></span>
+      </div>
+      <div class="group"><label for="srcTitle">Título *</label><input id="srcTitle" type="text" maxlength="500" required></div>
+      <div class="two-col">
+        <div class="group"><label for="srcType">Tipo de fuente</label>
+          <select id="srcType"><option value="article">Artículo</option><option value="book">Libro</option><option value="chapter">Capítulo</option><option value="thesis">Tesis</option><option value="report">Informe</option><option value="web">Página web</option><option value="other">Otro</option></select></div>
+        <div class="group"><label for="srcYear">Año</label><input id="srcYear" type="text" inputmode="numeric" maxlength="5" placeholder="2024"></div>
+      </div>
+      <div class="group"><label for="srcAuthor">Autores</label><input id="srcAuthor" type="text" maxlength="1500" placeholder="García, Juan; Pérez, Ana">
+        <span class="hint">Formato «Apellido, Nombre» separados por punto y coma. Para entidades, escribe el nombre completo.</span></div>
+      <div class="group"><label for="srcContainer">Revista, editorial o sitio web</label><input id="srcContainer" type="text" maxlength="300"></div>
+      <div class="three-col">
+        <div class="group"><label for="srcVolume">Volumen</label><input id="srcVolume" type="text" maxlength="30"></div>
+        <div class="group"><label for="srcIssue">Número</label><input id="srcIssue" type="text" maxlength="30"></div>
+        <div class="group"><label for="srcPages">Páginas</label><input id="srcPages" type="text" maxlength="40" placeholder="45-67"></div>
+      </div>
+      <div class="group"><label for="srcUrl">URL</label><input id="srcUrl" type="url" maxlength="2000" placeholder="https://"></div>
+      <div class="group"><label for="srcProject">Vincular a proyecto</label><select id="srcProject"></select></div>
+      <div class="group"><label for="srcNotes">Notas</label><textarea id="srcNotes" maxlength="2000"></textarea></div>
+      <div class="check-row"><input type="checkbox" id="srcVerified"><label for="srcVerified">Comprobé manualmente esta fuente en el documento o sitio original.</label></div>
+      <p class="form-error" id="srcError" role="alert"></p>
+      <div class="dialog-actions">
+        <button type="button" class="secondary-btn" data-action="close-dialog">Cancelar</button>
+        <button type="submit" class="primary-btn">Guardar fuente</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="textDialog" aria-labelledby="textDialogTitle">
+    <form id="textForm" class="dialog-form">
+      <h2 id="textDialogTitle"></h2>
+      <div class="group"><label for="textDialogInput" id="textDialogLabel"></label><input id="textDialogInput" type="text" maxlength="90"></div>
+      <div class="dialog-actions">
+        <button type="button" class="secondary-btn" data-action="close-dialog">Cancelar</button>
+        <button type="submit" class="primary-btn" id="textDialogOk">Guardar</button>
+      </div>
+    </form>
+  </dialog>
 
 <script>
   const STRUCTURES = {
@@ -489,6 +607,11 @@
   const STORAGE_KEY = "generadorInvestigacionV2";
   const HISTORY_KEY = "generadorInvestigacionHistory";
   const THEME_KEY = "generadorInvestigacionTheme";
+  const PROJECTS_KEY = "navegadorAcademicoProjectsV1";
+  const SOURCES_KEY = "navegadorAcademicoSourcesV1";
+  let activeProjectId = null;
+  let projects = [];
+  let sources = [];
   let structures = [];
   let userEditingPrompt = false;
   let dragState = null;
@@ -532,52 +655,57 @@
   }
 
   function loadState(){
-    try{
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-      return saved ? {...defaultState(),...saved,quality:{...defaultState().quality,...(saved.quality||{})}} : defaultState();
-    }catch{
-      return defaultState();
+    const saved = safeRead(STORAGE_KEY, null);
+    return saved ? sanitizeState(saved) : defaultState();
+  }
+
+  /* Guardado con debounce: evita escribir en localStorage y re-renderizar en cada tecla. */
+  let saveTimer = null;
+  function saveState(){
+    clearTimeout(saveTimer);
+    $("saveStatus").textContent = "Guardando…";
+    saveTimer = setTimeout(saveStateNow, 350);
+  }
+  function flushSave(){
+    if(saveTimer){ clearTimeout(saveTimer); saveTimer = null; saveStateNow(); }
+  }
+  function saveStateNow(){
+    clearTimeout(saveTimer); saveTimer = null;
+    const data = captureCurrentState();
+    const ok = safeWrite(STORAGE_KEY, data);
+    const project = getActiveProject();
+    if(ok && project){
+      project.state = data;
+      project.prompt = $("finalPrompt").value;
+      project.updatedAt = new Date().toISOString();
+      persistProjects(false);
+    }
+    if(ok){
+      $("saveStatus").textContent = "Guardado";
+      if($("homeSaveStatus")) $("homeSaveStatus").textContent = "Cambios guardados";
+    }else{
+      $("saveStatus").textContent = "No se pudo guardar";
+      showToast("No se pudo guardar. Exporta una copia y revisa el espacio disponible.");
     }
   }
 
-  function saveState(){
-    const data = {
-      topic:$("topic").value,
-      workType:$("workType").value,
-      approach:$("approach").value,
-      level:$("level").value,
-      citation:$("citation").value,
-      sources:$("sources").value,
-      years:$("years").value,
-      language:$("language").value,
-      context:$("context").value,
-      question:$("question").value,
-      depth:$("depth").value,
-      quality:{
-        realSources:$("realSources").checked,
-        primarySources:$("primarySources").checked,
-        tables:$("tables").checked,
-        limitations:$("limitations").checked
-      },
-      structures
-    };
-    localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
-    $("saveStatus").textContent = "Guardado";
+  function setSelect(id, value, fallback){
+    const el = $(id);
+    el.value = [...el.options].some(o => o.value === value) ? value : fallback;
   }
-
   function restoreState(){
     const s = loadState();
     $("topic").value = s.topic || "";
-    $("workType").value = s.workType && STRUCTURES[s.workType] ? s.workType : "Investigación";
-    $("approach").value = s.approach || "Cualitativa";
-    $("level").value = s.level || "Universitario";
-    $("citation").value = s.citation || "APA 7";
+    setSelect("workType", s.workType, "Investigación");
+    setSelect("approach", s.approach, "Cualitativa");
+    setSelect("level", s.level, "Universitario");
+    setSelect("citation", s.citation, "APA 7");
     $("sources").value = s.sources || 10;
-    $("years").value = s.years || "Últimos 10 años";
-    $("language").value = s.language || "Español";
+    setSelect("years", s.years, "Últimos 10 años");
+    setSelect("language", s.language, "Español");
     $("context").value = s.context || "";
     $("question").value = s.question || "";
-    $("depth").value = s.depth || "Académica profunda";
+    setSelect("depth", s.depth, "Académica profunda");
     $("realSources").checked = !!s.quality?.realSources;
     $("primarySources").checked = !!s.quality?.primarySources;
     $("tables").checked = !!s.quality?.tables;
@@ -611,7 +739,7 @@
     saveState();
   }
 
-  function renderStructures(){
+  function renderStructures(focus){
     const container = $("chipsContainer");
     container.innerHTML = "";
 
@@ -619,6 +747,7 @@
       const chip = document.createElement("div");
       chip.className = "chip " + (item.active ? "" : "inactive");
       chip.dataset.index = index;
+      chip.setAttribute("role","listitem");
 
       const number = document.createElement("span");
       number.className = "chip-number";
@@ -627,6 +756,14 @@
       const main = document.createElement("div");
       main.className = "chip-main";
       main.title = "Clic para activar/desactivar";
+      main.dataset.part = "main";
+      main.setAttribute("role","checkbox");
+      main.setAttribute("aria-checked", item.active ? "true" : "false");
+      main.setAttribute("aria-label", item.name);
+      main.tabIndex = 0;
+      main.addEventListener("keydown", e => {
+        if(e.key === " " || e.key === "Enter"){ e.preventDefault(); toggleStructure(index); }
+      });
 
       const check = document.createElement("span");
       check.className = "check";
@@ -645,6 +782,7 @@
       const up = document.createElement("button");
       up.className = "move-btn";
       up.type = "button";
+      up.dataset.part = "up";
       up.textContent = "▲";
       up.title = "Subir sección";
       up.setAttribute("aria-label", `Subir ${item.name}`);
@@ -657,6 +795,7 @@
       const down = document.createElement("button");
       down.className = "move-btn";
       down.type = "button";
+      down.dataset.part = "down";
       down.textContent = "▼";
       down.title = "Bajar sección";
       down.setAttribute("aria-label", `Bajar ${item.name}`);
@@ -669,6 +808,7 @@
       const remove = document.createElement("button");
       remove.className = "remove-btn";
       remove.type = "button";
+      remove.dataset.part = "remove";
       remove.textContent = "✕";
       remove.title = "Eliminar sección";
       remove.setAttribute("aria-label", `Eliminar ${item.name}`);
@@ -681,6 +821,13 @@
       chip.append(number,main,controls);
       container.appendChild(chip);
     });
+
+    if(focus){
+      const chip = container.children[focus.index];
+      let el = chip && chip.querySelector('[data-part="' + focus.part + '"]:not(:disabled)');
+      if(!el && chip) el = chip.querySelector('[data-part="main"]');
+      if(el) el.focus();
+    }
   }
 
   function moveStructure(index, direction){
@@ -689,7 +836,7 @@
 
     [structures[index],structures[target]] = [structures[target],structures[index]];
     userEditingPrompt = false;
-    renderStructures();
+    renderStructures({index:target, part: direction < 0 ? "up" : "down"});
     generatePrompt();
     saveState();
   }
@@ -697,7 +844,7 @@
   function toggleStructure(i){
     structures[i].active=!structures[i].active;
     userEditingPrompt=false;
-    renderStructures();
+    renderStructures({index:i, part:"main"});
     generatePrompt();
     saveState();
   }
@@ -705,7 +852,7 @@
   function removeStructure(i){
     structures.splice(i,1);
     userEditingPrompt=false;
-    renderStructures();
+    renderStructures(structures.length ? {index:Math.min(i,structures.length-1), part:"main"} : null);
     generatePrompt();
     saveState();
     showToast("Sección eliminada.");
@@ -942,7 +1089,7 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
     userEditingPrompt=true;
     autoResize();
     updateStats($("finalPrompt").value);
-    $("saveStatus").textContent="Edición manual";
+    saveState();
   }
 
   function autoResize(){
@@ -954,43 +1101,23 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
   function updateStats(text){
     const chars=text.length;
     const words=text.trim()?text.trim().split(/\s+/).length:0;
-    $("promptStats").textContent=`${chars.toLocaleString("es-CO")} caracteres · ${words.toLocaleString("es-CO")} palabras`;
+    const tokens=Math.round(chars/3.7);
+    $("promptStats").textContent=`${chars.toLocaleString("es-CO")} caracteres · ${words.toLocaleString("es-CO")} palabras · ≈ ${tokens.toLocaleString("es-CO")} tokens (estimado)`;
   }
 
   async function copyPrompt(){
-    const text=$("finalPrompt").value;
-    try{
-      await navigator.clipboard.writeText(text);
-      showToast("Prompt copiado al portapapeles.");
-    }catch{
-      $("finalPrompt").select();
-      document.execCommand("copy");
-      showToast("Prompt copiado.");
-    }
+    const ok = await copyText($("finalPrompt").value);
+    showToast(ok ? "Prompt copiado al portapapeles." : "No se pudo copiar. Selecciona el texto y usa Ctrl/Cmd + C.");
   }
 
   function downloadPrompt(){
-    const text=$("finalPrompt").value;
-    const blob=new Blob([text],{type:"text/plain;charset=utf-8"});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement("a");
-    a.href=url;
-    a.download="prompt-investigacion.txt";
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadBlob($("finalPrompt").value, "prompt-investigacion.txt", "text/plain;charset=utf-8");
     showToast("Archivo .txt descargado.");
   }
 
   function exportConfig(){
-    saveState();
-    const raw=localStorage.getItem(STORAGE_KEY) || "{}";
-    const blob=new Blob([raw],{type:"application/json;charset=utf-8"});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement("a");
-    a.href=url;
-    a.download="config-investigacion.json";
-    a.click();
-    URL.revokeObjectURL(url);
+    saveStateNow();
+    downloadJson({...captureCurrentState(), schemaVersion: SCHEMA_VERSION}, "config-investigacion.json");
     showToast("Configuración exportada.");
   }
 
@@ -1001,8 +1128,14 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
     reader.onload=()=>{
       try{
         const data=JSON.parse(reader.result);
-        localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
-        location.reload();
+        if(!data || typeof data!=="object" || Array.isArray(data)) throw new Error("Formato incorrecto");
+        safeWrite(STORAGE_KEY, sanitizeState(data));
+        restoreState();
+        userEditingPrompt=false;
+        syncTypeStructure();
+        generatePrompt();
+        saveStateNow();
+        showToast("Configuración importada.");
       }catch{
         showToast("El JSON no es válido.");
       }
@@ -1011,18 +1144,27 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
     event.target.value="";
   }
 
+  /* El historial combina búsquedas recientes y los temas de tus proyectos (una sola fuente de verdad). */
   function loadHistory(){
-    try{
-      return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
-    }catch{return []}
+    const legacy = safeRead(HISTORY_KEY, []);
+    const fromProjects = projects.slice()
+      .sort((a,b)=>Date.parse(b.updatedAt)-Date.parse(a.updatedAt))
+      .map(p=>p.state?.topic);
+    const seen = new Set(), out = [];
+    [...(Array.isArray(legacy)?legacy:[]), ...fromProjects].forEach(t=>{
+      if(typeof t !== "string") return;
+      const clean = t.trim(), key = clean.toLowerCase();
+      if(clean && !seen.has(key)){ seen.add(key); out.push(clean); }
+    });
+    return out.slice(0,7);
   }
 
   function saveHistory(topic){
     if(!topic) return;
-    let history=loadHistory().filter(x=>x.toLowerCase()!==topic.toLowerCase());
+    let history = safeRead(HISTORY_KEY, []);
+    history = (Array.isArray(history)?history:[]).filter(x=>typeof x==="string" && x.toLowerCase()!==topic.toLowerCase());
     history.unshift(topic);
-    history=history.slice(0,7);
-    localStorage.setItem(HISTORY_KEY,JSON.stringify(history));
+    safeWrite(HISTORY_KEY, history.slice(0,7));
     renderHistory();
   }
 
@@ -1030,12 +1172,12 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
     const items=loadHistory();
     const box=$("historyContainer");
     if(!items.length){box.innerHTML="";return}
-    box.innerHTML=`<span style="font-size:.73rem;color:var(--muted);align-self:center">Recientes:</span>`+
-      items.map((x,i)=>`<span class="history-chip" data-h="${i}" tabindex="0">${escapeHtml(x)}</span>`).join("");
+    box.innerHTML=`<span class="history-label">Recientes:</span>`+
+      items.map((x,i)=>`<span class="history-chip" data-h="${i}" role="button" tabindex="0">${escapeHtml(x)}</span>`).join("");
     box.querySelectorAll("[data-h]").forEach(el=>{
       const topic=items[Number(el.dataset.h)];
       el.addEventListener("click",()=>useHistory(topic));
-      el.addEventListener("keydown",e=>{if(e.key==="Enter")useHistory(topic)});
+      el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();useHistory(topic)}});
     });
   }
 
@@ -1047,6 +1189,17 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
     $("topic").focus();
   }
 
+  /* Versión compacta del prompt para buscadores: las URLs muy largas fallan o se recortan. */
+  function buildShortPrompt(){
+    const topic=$("topic").value.trim();
+    const q=$("question").value.trim(), ctx=$("context").value.trim();
+    const parts=[`Investiga con fuentes verificables y enlaces originales: ${topic}.`];
+    if(q) parts.push(`Pregunta: ${q}.`);
+    if(ctx) parts.push(`Contexto: ${ctx}.`);
+    parts.push(`Rango temporal: ${$("years").value}. Mínimo ${Math.max(1,Math.min(100,Number($("sources").value)||10))} fuentes, citadas en ${$("citation").value}. Responde en ${$("language").value}. No inventes referencias ni URLs.`);
+    return parts.join(" ").slice(0,1200);
+  }
+
   function runSearch(engine){
     const topic=$("topic").value.trim();
     if(!topic){
@@ -1055,32 +1208,32 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
       return;
     }
     saveHistory(topic);
-    const command=$("finalPrompt").value.trim() || buildPrompt();
-
+    const full=$("finalPrompt").value.trim() || buildPrompt();
+    const question=$("question").value.trim();
     const urls={
-      google:"https://www.google.com/search?q="+encodeURIComponent(command),
-      perplexity:"https://www.perplexity.ai/search?q="+encodeURIComponent(command),
-      brave:"https://search.brave.com/ask?q="+encodeURIComponent(command)
+      google:"https://www.google.com/search?q="+encodeURIComponent([topic,question].filter(Boolean).join(" ").slice(0,300)),
+      perplexity:"https://www.perplexity.ai/search?q="+encodeURIComponent(buildShortPrompt()),
+      brave:"https://search.brave.com/ask?q="+encodeURIComponent(buildShortPrompt()),
+      chatgpt:"https://chatgpt.com/",
+      gemini:"https://gemini.google.com/app"
     };
+    if(!urls[engine]) return;
+
+    // La copia se inicia antes de abrir la pestaña (mientras el documento aún tiene el foco).
+    const copying = engine==="google" ? null : copyText(full);
+    window.open(urls[engine],"_blank","noopener");
 
     if(engine==="chatgpt" || engine==="gemini"){
-      navigator.clipboard.writeText(command).then(()=>{
-        showToast(`Prompt copiado. Pégalo en ${engine==="chatgpt"?"ChatGPT":"Gemini"}.`);
-      }).catch(()=>showToast("No se pudo copiar automáticamente. Usa el botón Copiar."));
-      window.open(engine==="chatgpt"?"https://chatgpt.com/":"https://gemini.google.com/app","_blank","noopener");
-      return;
+      copying.then(ok=>showToast(ok
+        ? `Prompt copiado. Pégalo en ${engine==="chatgpt"?"ChatGPT":"Gemini"}.`
+        : "No se pudo copiar automáticamente. Usa el botón Copiar."));
+    }else if(engine==="google"){
+      showToast("Google recibe solo el tema y la pregunta; el prompt completo es demasiado largo para una URL.");
+    }else{
+      copying.then(ok=>showToast(ok
+        ? "Se envió una versión resumida. El prompt completo quedó copiado por si prefieres pegarlo."
+        : "Se envió una versión resumida del prompt."));
     }
-
-    window.open(urls[engine],"_blank","noopener");
-  }
-
-  function showToast(message){
-    document.querySelector(".toast")?.remove();
-    const t=document.createElement("div");
-    t.className="toast";
-    t.textContent=message;
-    document.body.appendChild(t);
-    setTimeout(()=>t.remove(),3000);
   }
 
   function toggleTheme(){
@@ -1089,16 +1242,16 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
     if(light){
       delete html.dataset.theme;
       $("themeToggle").textContent="🌙";
-      localStorage.setItem(THEME_KEY,"dark");
+      try{localStorage.setItem(THEME_KEY,"dark")}catch{}
     }else{
       html.dataset.theme="light";
       $("themeToggle").textContent="☀️";
-      localStorage.setItem(THEME_KEY,"light");
+      try{localStorage.setItem(THEME_KEY,"light")}catch{}
     }
   }
 
   function initTheme(){
-    const saved=localStorage.getItem(THEME_KEY);
+    let saved=null; try{saved=localStorage.getItem(THEME_KEY)}catch{}
     const prefersLight=window.matchMedia("(prefers-color-scheme: light)").matches;
     if(saved==="light" || (!saved && prefersLight)){
       document.documentElement.dataset.theme="light";
@@ -1133,6 +1286,1081 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
     $("workType").addEventListener("change",handleTypeChange);
   }
 
+  /* =====================================================================
+     PLATAFORMA: utilidades, saneamiento, proyectos, fuentes, exportación
+     ===================================================================== */
+  const SCHEMA_VERSION = 2;
+  const ACTIVE_KEY = "navegadorAcademicoActiveV1";
+  const SCHEMA_KEY = "navegadorAcademicoSchema";
+  const PRESETS_KEY = "navegadorAcademicoPresetsV1";
+  const BACKUP_KEY = "navegadorAcademicoLastBackup";
+  const SNOOZE_KEY = "navegadorAcademicoBackupSnooze";
+  const CITE_STYLE_KEY = "navegadorAcademicoCiteStyle";
+  const SOURCE_TYPES = {
+    article: "Artículo", book: "Libro", chapter: "Capítulo", thesis: "Tesis",
+    report: "Informe", web: "Página web", other: "Otro"
+  };
+  const CITE_STYLES = ["APA 7", "MLA 9", "IEEE", "Vancouver"];
+  const SELECT_FIELDS = ["approach", "level", "citation", "years", "language", "depth"];
+
+  /* ---------- utilidades generales ---------- */
+  function safeRead(key, fallback) {
+    try { const v = JSON.parse(localStorage.getItem(key)); return v === null ? fallback : v; }
+    catch { return fallback; }
+  }
+  function safeWrite(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); return true; }
+    catch { return false; }
+  }
+  function newId(prefix) {
+    const rnd = (window.crypto && crypto.randomUUID)
+      ? crypto.randomUUID().slice(0, 8)
+      : Math.random().toString(36).slice(2, 10);
+    return prefix + "-" + Date.now().toString(36) + "-" + rnd;
+  }
+  function cleanStr(v, max) {
+    return typeof v === "string" ? v.replace(/\u0000/g, "").trim().slice(0, max) : "";
+  }
+  function cleanId(v) {
+    return typeof v === "string" && /^[\w.-]{1,80}$/.test(v) ? v : "";
+  }
+  function cleanDate(v) {
+    const d = new Date(v);
+    return typeof v === "string" && !isNaN(d) ? d.toISOString() : new Date().toISOString();
+  }
+  function safeUrl(v) {
+    const s = cleanStr(v, 2000);
+    if (!s) return "";
+    try {
+      const u = new URL(s);
+      return /^https?:$/.test(u.protocol) ? u.href : "";
+    } catch { return ""; }
+  }
+  function normalizeDoi(v) {
+    const s = cleanStr(v, 300).replace(/^(https?:\/\/(dx\.)?doi\.org\/|doi:\s*)/i, "");
+    return /^10\.\d{4,9}\/\S+$/.test(s) ? s : "";
+  }
+  function fmtDate(v) {
+    if (!v) return "—";
+    const d = new Date(v);
+    return isNaN(d) ? "—" : d.toLocaleDateString("es-CO", { year: "numeric", month: "short", day: "numeric" });
+  }
+  function debounce(fn, ms) {
+    let t;
+    const wrapped = (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+    wrapped.cancel = () => clearTimeout(t);
+    return wrapped;
+  }
+  function downloadBlob(content, filename, mime) {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  function downloadJson(data, name) {
+    downloadBlob(JSON.stringify(data, null, 2), name, "application/json;charset=utf-8");
+  }
+  function slug(s) {
+    return (String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "proyecto").slice(0, 50);
+  }
+
+  /* ---------- saneamiento de datos (importaciones y migraciones) ---------- */
+  function sanitizeState(st) {
+    const base = defaultState();
+    if (!st || typeof st !== "object" || Array.isArray(st)) return base;
+    const type = typeof st.workType === "string" && STRUCTURES[st.workType] ? st.workType : base.workType;
+    const q = st.quality && typeof st.quality === "object" ? st.quality : {};
+    let structs;
+    if (Array.isArray(st.structures)) {
+      structs = st.structures.slice(0, 60)
+        .filter(x => x && typeof x.name === "string" && x.name.trim())
+        .map(x => ({ name: cleanStr(x.name, 120), active: x.active !== false }));
+    } else {
+      structs = cloneStructure(STRUCTURES[type]);
+    }
+    return {
+      topic: cleanStr(st.topic, 500),
+      workType: type,
+      approach: cleanStr(st.approach, 60) || base.approach,
+      level: cleanStr(st.level, 60) || base.level,
+      citation: cleanStr(st.citation, 60) || base.citation,
+      sources: Math.max(1, Math.min(100, Number(st.sources) || 10)),
+      years: cleanStr(st.years, 80) || base.years,
+      language: cleanStr(st.language, 60) || base.language,
+      context: cleanStr(st.context, 500),
+      question: cleanStr(st.question, 800),
+      depth: cleanStr(st.depth, 60) || base.depth,
+      quality: {
+        realSources: q.realSources !== false, primarySources: q.primarySources !== false,
+        tables: q.tables !== false, limitations: q.limitations !== false
+      },
+      structures: structs
+    };
+  }
+  function sanitizeProject(p) {
+    if (!p || typeof p !== "object") return null;
+    const id = cleanId(p.id);
+    if (!id || !p.state || typeof p.state !== "object") return null;
+    return {
+      id,
+      name: cleanStr(p.name, 90) || "Investigación sin título",
+      createdAt: cleanDate(p.createdAt),
+      updatedAt: cleanDate(p.updatedAt),
+      state: sanitizeState(p.state),
+      prompt: typeof p.prompt === "string" ? p.prompt.slice(0, 60000) : ""
+    };
+  }
+  function sanitizeSource(s) {
+    if (!s || typeof s !== "object" || typeof s.title !== "string" || !s.title.trim()) return null;
+    return {
+      id: cleanId(s.id) || newId("src"),
+      type: SOURCE_TYPES[s.type] ? s.type : "other",
+      title: cleanStr(s.title, 500),
+      author: cleanStr(s.author, 1500),
+      year: /^\d{4}[a-z]?$/.test(String(s.year || "").trim()) ? String(s.year).trim() : "",
+      container: cleanStr(s.container, 300),
+      volume: cleanStr(s.volume, 30),
+      issue: cleanStr(s.issue, 30),
+      pages: cleanStr(s.pages, 40),
+      url: safeUrl(s.url),
+      doi: normalizeDoi(s.doi),
+      notes: cleanStr(s.notes, 2000),
+      projectId: cleanId(s.projectId),
+      verified: s.verified === true,
+      createdAt: cleanDate(s.createdAt),
+      updatedAt: cleanDate(s.updatedAt)
+    };
+  }
+  function sanitizeList(list, fn, max) {
+    return list.slice(0, max).map(fn).filter(Boolean);
+  }
+
+  /* ---------- toasts accesibles (con acción opcional «Deshacer») ---------- */
+  let toastTimer = null;
+  function showToast(message, opts = {}) {
+    const region = $("toastRegion");
+    clearTimeout(toastTimer);
+    region.textContent = "";
+    const t = document.createElement("div");
+    t.className = "toast";
+    const span = document.createElement("span");
+    span.textContent = message;
+    t.appendChild(span);
+    if (opts.action) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "toast-action";
+      b.textContent = opts.action.label;
+      b.addEventListener("click", () => { region.textContent = ""; opts.action.run(); });
+      t.appendChild(b);
+    }
+    region.appendChild(t);
+    toastTimer = setTimeout(() => { region.textContent = ""; }, opts.duration || (opts.action ? 8000 : 3200));
+  }
+
+  /* ---------- portapapeles ---------- */
+  function fallbackCopy(text) {
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.setAttribute("readonly", ""); ta.className = "sr-copy";
+      document.body.appendChild(ta); ta.select();
+      const ok = document.execCommand("copy");
+      ta.remove();
+      return ok;
+    } catch { return false; }
+  }
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).then(() => true, () => fallbackCopy(text));
+    }
+    return Promise.resolve(fallbackCopy(text));
+  }
+
+  /* ---------- diálogo de texto (reemplaza prompt()) ---------- */
+  function askText({ title, label, value = "", okLabel = "Guardar", maxLength = 90 }) {
+    return new Promise(resolve => {
+      const dlg = $("textDialog"), form = $("textForm"), input = $("textDialogInput");
+      $("textDialogTitle").textContent = title;
+      $("textDialogLabel").textContent = label;
+      $("textDialogOk").textContent = okLabel;
+      input.value = value; input.maxLength = maxLength;
+      let result = null;
+      const onSubmit = e => {
+        e.preventDefault();
+        const v = input.value.trim();
+        if (!v) { input.focus(); return; }
+        result = v; dlg.close();
+      };
+      const onClose = () => {
+        form.removeEventListener("submit", onSubmit);
+        dlg.removeEventListener("close", onClose);
+        resolve(result);
+      };
+      form.addEventListener("submit", onSubmit);
+      dlg.addEventListener("close", onClose);
+      dlg.showModal();
+      input.focus(); input.select();
+    });
+  }
+
+  /* =====================================================================
+     PROYECTOS
+     ===================================================================== */
+  function captureCurrentState() {
+    return {
+      topic: $("topic").value, workType: $("workType").value, approach: $("approach").value,
+      level: $("level").value, citation: $("citation").value, sources: $("sources").value,
+      years: $("years").value, language: $("language").value, context: $("context").value,
+      question: $("question").value, depth: $("depth").value,
+      quality: {
+        realSources: $("realSources").checked, primarySources: $("primarySources").checked,
+        tables: $("tables").checked, limitations: $("limitations").checked
+      },
+      structures: JSON.parse(JSON.stringify(structures))
+    };
+  }
+  function getActiveProject() {
+    return projects.find(p => p.id === activeProjectId) || null;
+  }
+  function setActiveProject(id) {
+    activeProjectId = id || null;
+    try {
+      if (activeProjectId) localStorage.setItem(ACTIVE_KEY, activeProjectId);
+      else localStorage.removeItem(ACTIVE_KEY);
+    } catch {}
+    updateProjectBar();
+  }
+  function persistProjects(render = true) {
+    const ok = safeWrite(PROJECTS_KEY, projects);
+    if (!ok) showToast("No se pudieron guardar los proyectos. Exporta una copia y libera espacio.");
+    if (render) renderProjects();
+    return ok;
+  }
+  function updateProjectBar() {
+    const p = getActiveProject();
+    const bar = $("projectBar");
+    if (!bar) return;
+    bar.classList.toggle("is-warning", !p);
+    $("projectBarLabel").textContent = p ? "Proyecto activo" : "Sin proyecto activo";
+    $("projectBarName").textContent = p ? p.name : "Tus cambios solo se guardan como borrador.";
+    $("projectBarRename").hidden = !p;
+    $("projectBarSources").hidden = !p;
+    $("projectBarSave").hidden = !!p;
+    if (p) $("projectBarSources").textContent = "Fuentes (" + sourcesOf(p.id).length + ")";
+  }
+  function newProject() {
+    flushSave();
+    const now = new Date().toISOString();
+    const p = { id: newId("proj"), name: "Nueva investigación", createdAt: now, updatedAt: now, state: defaultState(), prompt: "" };
+    projects.unshift(p);
+    applyProject(p);
+    persistProjects();
+    showView("generator");
+    $("topic").focus();
+    showToast("Proyecto creado. Escribe el tema para comenzar.");
+  }
+  async function saveAsProject() {
+    const name = await askText({
+      title: "Guardar como proyecto", label: "Nombre del proyecto",
+      value: $("topic").value.trim().slice(0, 90) || "Nueva investigación", okLabel: "Crear proyecto"
+    });
+    if (!name) return;
+    const now = new Date().toISOString();
+    const p = { id: newId("proj"), name, createdAt: now, updatedAt: now, state: captureCurrentState(), prompt: $("finalPrompt").value };
+    projects.unshift(p);
+    setActiveProject(p.id);
+    persistProjects();
+    showToast("Proyecto creado.");
+  }
+  function applyProject(p) {
+    if (!p || !p.state) return;
+    flushSave();
+    setActiveProject(p.id);
+    safeWrite(STORAGE_KEY, p.state);
+    restoreState();
+    userEditingPrompt = false;
+    syncTypeStructure();
+    $("finalPrompt").value = p.prompt || buildPrompt();
+    autoResize();
+    updateStats($("finalPrompt").value);
+    $("saveStatus").textContent = "Proyecto: " + p.name;
+  }
+  function openProject(id) {
+    const p = projects.find(x => x.id === id);
+    if (p) { applyProject(p); showView("generator"); showToast("Proyecto abierto."); }
+  }
+  function deleteProject(id) {
+    const index = projects.findIndex(x => x.id === id);
+    if (index < 0) return;
+    const removed = projects[index];
+    const wasActive = activeProjectId === id;
+    projects.splice(index, 1);
+    // No se reasigna a otro proyecto: evita que ediciones futuras sobrescriban uno ajeno.
+    if (wasActive) setActiveProject(null);
+    persistProjects();
+    updateProjectBar();
+    showToast("Proyecto «" + removed.name + "» eliminado.", {
+      action: {
+        label: "Deshacer",
+        run: () => {
+          projects.splice(Math.min(index, projects.length), 0, removed);
+          if (wasActive) setActiveProject(removed.id);
+          persistProjects(); updateProjectBar(); renderSources();
+          showToast("Proyecto restaurado.");
+        }
+      }
+    });
+  }
+  function duplicateProject(id) {
+    const p = projects.find(x => x.id === id);
+    if (!p) return;
+    const c = JSON.parse(JSON.stringify(p));
+    c.id = newId("proj");
+    c.name = (p.name + " (copia)").slice(0, 90);
+    c.createdAt = c.updatedAt = new Date().toISOString();
+    projects.unshift(c);
+    persistProjects();
+    showToast("Proyecto duplicado.");
+  }
+  async function renameProject(id) {
+    const p = projects.find(x => x.id === id);
+    if (!p) return;
+    const name = await askText({ title: "Renombrar proyecto", label: "Nombre del proyecto", value: p.name || "" });
+    if (!name) return;
+    p.name = name.slice(0, 90);
+    p.updatedAt = new Date().toISOString();
+    persistProjects();
+    updateProjectBar();
+    if (activeProjectId === id) $("saveStatus").textContent = "Proyecto: " + p.name;
+  }
+  function sourcesOf(projectId) {
+    return sources.filter(s => s.projectId === projectId);
+  }
+  function emptyStateHtml(icon, title, text, buttonHtml) {
+    return '<div class="empty-state span-all">' + (icon ? '<div class="empty-icon">' + icon + "</div>" : "") +
+      "<strong>" + escapeHtml(title) + "</strong><span>" + escapeHtml(text) + "</span>" +
+      (buttonHtml ? '<div class="empty-actions">' + buttonHtml + "</div>" : "") + "</div>";
+  }
+  function renderProjectBox(target, query = "") {
+    const box = $(target);
+    if (!box) return;
+    const q = query.toLowerCase().trim();
+    const list = projects.filter(p => ((p.name || "") + " " + (p.state?.topic || "")).toLowerCase().includes(q));
+    $("projectCount").textContent = projects.length;
+    if (!list.length) {
+      box.innerHTML = emptyStateHtml("▣", q ? "No hay coincidencias" : "Todavía no tienes proyectos",
+        q ? "Prueba otro término." : "Crea un proyecto para guardar el tema, la estructura y el prompt.",
+        q ? "" : '<button type="button" class="primary-btn" data-action="new-project">＋ Crear proyecto</button>');
+      return;
+    }
+    box.innerHTML = list.map(p => {
+      const n = sourcesOf(p.id).length;
+      const active = p.id === activeProjectId ? ' <span class="badge">Activo</span>' : "";
+      return '<article class="project-card" data-id="' + escapeHtml(p.id) + '">' +
+        "<h3>" + escapeHtml(p.name || "Investigación sin título") + active + "</h3>" +
+        "<p>" + escapeHtml(p.state?.topic || "Añade un tema para comenzar.") + "</p>" +
+        '<div class="project-meta">' + escapeHtml(p.state?.workType || "Investigación") +
+        " · " + n + (n === 1 ? " fuente" : " fuentes") + " · Modificado: " + escapeHtml(fmtDate(p.updatedAt)) + "</div>" +
+        '<div class="project-actions">' +
+        '<button type="button" class="primary-btn" data-action="open-project">Abrir</button>' +
+        '<button type="button" class="secondary-btn" data-action="rename-project">Renombrar</button>' +
+        '<button type="button" class="secondary-btn" data-action="duplicate-project">Duplicar</button>' +
+        '<button type="button" class="secondary-btn" data-action="project-sources">Fuentes</button>' +
+        '<button type="button" class="danger-btn" data-action="delete-project">Eliminar</button>' +
+        "</div></article>";
+    }).join("");
+  }
+  function renderProjects() {
+    renderProjectBox("recentProjects");
+    renderProjectBox("allProjects", $("projectSearch")?.value || "");
+    updateProjectBar();
+  }
+  function renderTemplates() {
+    const box = $("templateGrid");
+    if (!box) return;
+    const names = Object.keys(STRUCTURES);
+    $("templateCount").textContent = names.length;
+    box.innerHTML = names.map(n =>
+      '<article class="project-card" data-template="' + escapeHtml(n) + '"><h3>' + escapeHtml(n) + "</h3><p>" +
+      escapeHtml(TYPE_DESC[n] || "Plantilla de estructura académica reutilizable.") + '</p><div class="project-meta">' +
+      (STRUCTURES[n].length ? STRUCTURES[n].length + " secciones sugeridas" : "Estructura libre") +
+      '</div><div class="project-actions"><button type="button" class="primary-btn" data-action="use-template">Usar plantilla</button></div></article>'
+    ).join("");
+  }
+  function useTemplate(name) {
+    if (!STRUCTURES[name]) return;
+    $("workType").value = name;
+    handleTypeChange();
+    showView("generator");
+  }
+
+  /* =====================================================================
+     PRESETS (configuraciones reutilizables, sin tema ni pregunta)
+     ===================================================================== */
+  function loadPresets() {
+    const raw = safeRead(PRESETS_KEY, []);
+    return Array.isArray(raw)
+      ? raw.map(x => x && typeof x.name === "string" ? { name: cleanStr(x.name, 60), state: sanitizeState(x.state) } : null).filter(Boolean).slice(0, 30)
+      : [];
+  }
+  function renderPresets() {
+    const sel = $("presetSelect");
+    const items = loadPresets();
+    sel.innerHTML = '<option value="">— Mis configuraciones guardadas —</option>' +
+      items.map((p, i) => '<option value="' + i + '">' + escapeHtml(p.name) + "</option>").join("");
+    $("presetApply").disabled = $("presetDelete").disabled = true;
+  }
+  async function savePreset() {
+    const name = await askText({ title: "Guardar configuración", label: "Nombre (por ejemplo «Tesis APA 7»)", maxLength: 60 });
+    if (!name) return;
+    const st = captureCurrentState();
+    st.topic = ""; st.question = "";
+    const items = loadPresets().filter(p => p.name.toLowerCase() !== name.toLowerCase());
+    items.unshift({ name: name.slice(0, 60), state: st });
+    if (safeWrite(PRESETS_KEY, items.slice(0, 30))) { renderPresets(); showToast("Configuración guardada."); }
+    else showToast("No se pudo guardar la configuración.");
+  }
+  function applyPreset() {
+    const idx = Number($("presetSelect").value);
+    const p = loadPresets()[idx];
+    if (!p) return;
+    const keepTopic = $("topic").value, keepQuestion = $("question").value;
+    const st = { ...p.state, topic: keepTopic, question: keepQuestion };
+    safeWrite(STORAGE_KEY, st);
+    restoreState();
+    userEditingPrompt = false;
+    syncTypeStructure();
+    generatePrompt();
+    saveStateNow();
+    showToast("Configuración «" + p.name + "» aplicada.");
+  }
+  function deletePreset() {
+    const idx = Number($("presetSelect").value);
+    const items = loadPresets();
+    const removed = items[idx];
+    if (!removed) return;
+    items.splice(idx, 1);
+    safeWrite(PRESETS_KEY, items);
+    renderPresets();
+    showToast("Configuración eliminada.", {
+      action: { label: "Deshacer", run: () => { items.splice(idx, 0, removed); safeWrite(PRESETS_KEY, items); renderPresets(); } }
+    });
+  }
+
+  /* =====================================================================
+     RESPALDOS
+     ===================================================================== */
+  function markBackup() {
+    try { localStorage.setItem(BACKUP_KEY, String(Date.now())); localStorage.removeItem(SNOOZE_KEY); } catch {}
+    updateBackupBanner();
+  }
+  function exportAllProjects() {
+    downloadJson({
+      format: "navegador-academico-backup", version: 2, schemaVersion: SCHEMA_VERSION,
+      exportedAt: new Date().toISOString(), projects, sources
+    }, "respaldo-navegador-academico.json");
+    markBackup();
+    showToast("Copia de seguridad descargada.");
+  }
+  function importAllProjects(e) {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    if (f.size > 20 * 1024 * 1024) { showToast("El archivo es demasiado grande."); e.target.value = ""; return; }
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const d = JSON.parse(r.result);
+        if (!d || d.format !== "navegador-academico-backup" || ![1, 2].includes(d.version) ||
+            !Array.isArray(d.projects) || !Array.isArray(d.sources)) throw new Error("formato");
+        const newProjects = sanitizeList(d.projects, sanitizeProject, 500);
+        const newSources = sanitizeList(d.sources, sanitizeSource, 5000);
+        if (!confirm("Se reemplazarán los proyectos y fuentes actuales por " + newProjects.length +
+            " proyectos y " + newSources.length + " fuentes. ¿Continuar?")) return;
+        projects = newProjects; sources = newSources;
+        persistProjects(false);
+        safeWrite(SOURCES_KEY, sources);
+        if (projects.length) applyProject(projects[0]); else setActiveProject(null);
+        renderProjects(); renderSources();
+        showToast("Copia restaurada.");
+      } catch { showToast("Archivo inválido. No se modificaron los datos."); }
+      finally { e.target.value = ""; }
+    };
+    r.readAsText(f);
+  }
+  function updateBackupBanner() {
+    const banner = $("backupBanner");
+    if (!banner) return;
+    let show = false, days = 0;
+    if (projects.length || sources.length) {
+      const last = Number(localStorage.getItem(BACKUP_KEY)) || 0;
+      const snooze = Number(localStorage.getItem(SNOOZE_KEY)) || 0;
+      const oldest = projects.reduce((m, p) => Math.min(m, Date.parse(p.createdAt) || m), Date.now());
+      const ref = last || oldest;
+      days = Math.floor((Date.now() - ref) / 86400000);
+      show = days >= (last ? 30 : 7) && Date.now() > snooze;
+    }
+    banner.hidden = !show;
+    if (show) {
+      $("backupBannerText").textContent = localStorage.getItem(BACKUP_KEY)
+        ? "Hace " + days + " días que no exportas una copia de seguridad. Tus datos viven solo en este navegador."
+        : "Aún no has exportado ninguna copia de seguridad. Si limpias el navegador, perderás tus proyectos y fuentes.";
+    }
+  }
+
+  /* =====================================================================
+     NAVEGACIÓN (pestañas accesibles)
+     ===================================================================== */
+  const VIEWS = { home: "homeView", projects: "projectsView", generator: "generatorView", templates: "templatesView", bibliography: "bibliographyView" };
+  function showView(name, fromTab = false) {
+    if (!VIEWS[name]) return;
+    flushSave();
+    Object.entries(VIEWS).forEach(([k, id]) => { $(id).hidden = k !== name; });
+    document.querySelectorAll(".nav-btn").forEach(b => {
+      const active = b.dataset.view === name;
+      b.classList.toggle("active", active);
+      b.setAttribute("aria-selected", active ? "true" : "false");
+      b.tabIndex = active ? 0 : -1;
+    });
+    if (name === "projects" || name === "home") renderProjects();
+    if (name === "bibliography") renderSources();
+    if (name === "home") updateBackupBanner();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (!fromTab) $(VIEWS[name]).focus({ preventScroll: true });
+  }
+  function onTabKeydown(e) {
+    const tabs = [...document.querySelectorAll(".nav-btn")];
+    const i = tabs.indexOf(document.activeElement);
+    if (i < 0) return;
+    let j = null;
+    if (e.key === "ArrowRight") j = (i + 1) % tabs.length;
+    else if (e.key === "ArrowLeft") j = (i - 1 + tabs.length) % tabs.length;
+    else if (e.key === "Home") j = 0;
+    else if (e.key === "End") j = tabs.length - 1;
+    if (j === null) return;
+    e.preventDefault();
+    tabs[j].focus();
+    showView(tabs[j].dataset.view, true);
+  }
+
+  /* =====================================================================
+     BIBLIOGRAFÍA: autores y citas
+     ===================================================================== */
+  function parseAuthors(str) {
+    return String(str || "").split(";").map(x => x.trim()).filter(Boolean).map(part => {
+      const i = part.indexOf(",");
+      return i > -1
+        ? { family: part.slice(0, i).trim(), given: part.slice(i + 1).trim() }
+        : { family: part, given: "" };
+    });
+  }
+  function initials(given, { dots = true, space = true } = {}) {
+    return given.split(/[\s-]+/).filter(Boolean)
+      .map(w => w[0].toLocaleUpperCase("es") + (dots ? "." : ""))
+      .join(space ? " " : "");
+  }
+  function endDot(s) {
+    s = String(s || "").trim();
+    return s && !/[.?!…]$/.test(s) ? s + "." : s;
+  }
+  function tidy(s) { return s.replace(/\s+/g, " ").replace(/\s+([.,;:])/g, "$1").trim(); }
+  function linkOf(s) { return s.doi ? "https://doi.org/" + s.doi : s.url; }
+
+  function citeAPA(s) {
+    const A = parseAuthors(s.author);
+    const au = A.map(a => a.given ? a.family + ", " + initials(a.given) : a.family);
+    let authors = "";
+    if (au.length === 1) authors = au[0];
+    else if (au.length >= 2 && au.length <= 20) authors = au.slice(0, -1).join(", ") + ", & " + au[au.length - 1];
+    else if (au.length > 20) authors = au.slice(0, 19).join(", ") + ", . . . " + au[au.length - 1];
+    const y = s.year || "s. f.";
+    const t = s.title + (s.type === "thesis" ? " [Tesis]" : "");
+    let out = authors ? endDot(authors) + " (" + y + "). " + endDot(t) + " " : endDot(t) + " (" + y + "). ";
+    if (s.type === "article" && s.container) {
+      out += s.container + (s.volume ? ", " + s.volume : "") + (s.issue ? "(" + s.issue + ")" : "") + (s.pages ? ", " + s.pages : "") + ". ";
+    } else if (s.type === "chapter" && s.container) {
+      out += "En " + s.container + (s.pages ? " (pp. " + s.pages + ")" : "") + ". ";
+    } else if (s.container) {
+      out += endDot(s.container) + " ";
+    }
+    return tidy(out + linkOf(s));
+  }
+  function citeMLA(s) {
+    const A = parseAuthors(s.author);
+    const full = a => a.given ? a.family + ", " + a.given : a.family;
+    let authors = "";
+    if (A.length === 1) authors = full(A[0]);
+    else if (A.length === 2) authors = full(A[0]) + ", y " + (A[1].given ? A[1].given + " " + A[1].family : A[1].family);
+    else if (A.length > 2) authors = full(A[0]) + ", et al";
+    const quoted = s.type === "article" || s.type === "chapter";
+    const title = quoted ? "“" + endDot(s.title) + "”" : endDot(s.title);
+    const bits = [s.container, s.volume ? "vol. " + s.volume : "", s.issue ? "n.º " + s.issue : "", s.year, s.pages ? "pp. " + s.pages : ""]
+      .filter(Boolean).join(", ");
+    return tidy((authors ? endDot(authors) + " " : "") + title + " " + (bits ? bits + "." : "") + " " + linkOf(s));
+  }
+  function citeIEEE(s) {
+    const A = parseAuthors(s.author).map(a => a.given ? initials(a.given) + " " + a.family : a.family);
+    let authors = "";
+    if (A.length === 1) authors = A[0];
+    else if (A.length === 2) authors = A[0] + " y " + A[1];
+    else if (A.length > 2) authors = A[0] + " et al.";
+    const quoted = s.type === "article" || s.type === "chapter";
+    const title = quoted ? "“" + s.title + ",”" : s.title + ".";
+    const bits = [s.container, s.volume ? "vol. " + s.volume : "", s.issue ? "n.º " + s.issue : "", s.pages ? "pp. " + s.pages : "", s.year,
+      s.doi ? "doi: " + s.doi : ""].filter(Boolean).join(", ");
+    const link = !s.doi && s.url ? " [En línea]. Disponible: " + s.url : "";
+    return tidy((authors ? authors + ", " : "") + title + " " + (bits ? bits + "." : "") + link);
+  }
+  function citeVancouver(s) {
+    const A = parseAuthors(s.author).map(a => a.given ? a.family + " " + initials(a.given, { dots: false, space: false }) : a.family);
+    const authors = A.length > 6 ? A.slice(0, 6).join(", ") + ", et al" : A.join(", ");
+    let out = (authors ? endDot(authors) + " " : "") + endDot(s.title) + " ";
+    if (s.type === "article") {
+      out += (s.container ? endDot(s.container) + " " : "") + (s.year || "") +
+        (s.volume ? ";" + s.volume : "") + (s.issue ? "(" + s.issue + ")" : "") + (s.pages ? ":" + s.pages : "") + ". ";
+    } else {
+      out += (s.container ? s.container : "") + (s.year ? (s.container ? "; " : "") + s.year : "") + ". ";
+    }
+    if (s.doi) out += "doi:" + s.doi;
+    else if (s.url) out += "Disponible en: " + s.url;
+    return tidy(out);
+  }
+  function formatCitation(s, style) {
+    switch (style) {
+      case "MLA 9": return citeMLA(s);
+      case "IEEE": return citeIEEE(s);
+      case "Vancouver": return citeVancouver(s);
+      default: return citeAPA(s);
+    }
+  }
+  function currentCiteStyle() {
+    const sel = $("citeStyle");
+    return sel && CITE_STYLES.includes(sel.value) ? sel.value : "APA 7";
+  }
+  function formatBibliography(list, style) {
+    const numbered = style === "IEEE" || style === "Vancouver";
+    const items = numbered ? list.slice() : list.slice().sort((a, b) =>
+      ((parseAuthors(a.author)[0]?.family || a.title) + a.year).localeCompare((parseAuthors(b.author)[0]?.family || b.title) + b.year, "es"));
+    return items.map((s, i) => {
+      const c = formatCitation(s, style);
+      return style === "IEEE" ? "[" + (i + 1) + "] " + c : style === "Vancouver" ? (i + 1) + ". " + c : c;
+    });
+  }
+
+  /* =====================================================================
+     BIBLIOGRAFÍA: exportación BibTeX / RIS / CSV
+     ===================================================================== */
+  function bibEsc(v) { return String(v).replace(/[{}\\]/g, "").replace(/([&%$#_])/g, "\\$1"); }
+  function bibKey(s, used) {
+    const norm = x => x.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const fam = norm(parseAuthors(s.author)[0]?.family || "") || "ref";
+    const word = norm((s.title.split(/\s+/).find(w => norm(w).length > 3)) || "") || "x";
+    let key = fam + (s.year || "sf") + word, k = key, n = 0;
+    while (used.has(k)) { n++; k = key + String.fromCharCode(96 + (n > 26 ? 26 : n)) + (n > 26 ? n : ""); }
+    used.add(k);
+    return k;
+  }
+  function toBibTeX(list) {
+    const used = new Set();
+    const types = { article: "article", book: "book", chapter: "incollection", thesis: "phdthesis", report: "techreport", web: "misc", other: "misc" };
+    const containerField = { article: "journal", book: "publisher", chapter: "booktitle", thesis: "school", report: "institution", web: "howpublished", other: "howpublished" };
+    return list.map(s => {
+      const f = [];
+      const A = parseAuthors(s.author).map(a => a.given ? bibEsc(a.family) + ", " + bibEsc(a.given) : "{" + bibEsc(a.family) + "}");
+      if (A.length) f.push(["author", A.join(" and ")]);
+      f.push(["title", "{" + bibEsc(s.title) + "}"]);
+      if (s.year) f.push(["year", s.year]);
+      if (s.container) f.push([containerField[s.type] || "howpublished", bibEsc(s.container)]);
+      if (s.volume) f.push(["volume", bibEsc(s.volume)]);
+      if (s.issue) f.push(["number", bibEsc(s.issue)]);
+      if (s.pages) f.push(["pages", bibEsc(s.pages.replace(/[-–—]+/g, "--"))]);
+      if (s.doi) f.push(["doi", s.doi]);
+      if (s.url) f.push(["url", s.url]);
+      if (s.notes) f.push(["note", bibEsc(s.notes.replace(/\s+/g, " "))]);
+      return "@" + (types[s.type] || "misc") + "{" + bibKey(s, used) + ",\n" +
+        f.map(([k, v]) => "  " + k + " = {" + v + "}").join(",\n") + "\n}";
+    }).join("\n\n") + "\n";
+  }
+  function toRIS(list) {
+    const ty = { article: "JOUR", book: "BOOK", chapter: "CHAP", thesis: "THES", report: "RPRT", web: "ELEC", other: "GEN" };
+    const cf = { article: "JO", book: "PB", chapter: "T2", thesis: "PB", report: "PB", web: "T2", other: "T2" };
+    const one = v => String(v).replace(/[\r\n]+/g, " ");
+    return list.map(s => {
+      const L = ["TY  - " + (ty[s.type] || "GEN")];
+      parseAuthors(s.author).forEach(a => L.push("AU  - " + one(a.given ? a.family + ", " + a.given : a.family)));
+      L.push("TI  - " + one(s.title));
+      if (s.year) L.push("PY  - " + s.year);
+      if (s.container) L.push((cf[s.type] || "T2") + "  - " + one(s.container));
+      if (s.volume) L.push("VL  - " + one(s.volume));
+      if (s.issue) L.push("IS  - " + one(s.issue));
+      if (s.pages) {
+        const [sp, ep] = s.pages.split(/[-–—]+/).map(x => x.trim());
+        if (sp) L.push("SP  - " + one(sp));
+        if (ep) L.push("EP  - " + one(ep));
+      }
+      if (s.doi) L.push("DO  - " + s.doi);
+      if (s.url) L.push("UR  - " + s.url);
+      if (s.notes) L.push("N1  - " + one(s.notes));
+      L.push("ER  - ");
+      return L.join("\r\n");
+    }).join("\r\n") + "\r\n";
+  }
+  function toCSV(list) {
+    const head = ["id", "tipo", "titulo", "autores", "anio", "contenedor", "volumen", "numero", "paginas", "doi", "url", "proyecto", "verificada", "notas"];
+    // Evita inyección de fórmulas al abrir en Excel/Sheets.
+    const cell = v => {
+      let t = String(v ?? "");
+      if (/^[=+\-@\t\r]/.test(t)) t = "'" + t;
+      return '"' + t.replace(/"/g, '""') + '"';
+    };
+    const rows = list.map(s => [s.id, SOURCE_TYPES[s.type], s.title, s.author, s.year, s.container, s.volume, s.issue, s.pages,
+      s.doi, s.url, projects.find(p => p.id === s.projectId)?.name || "", s.verified ? "sí" : "no", s.notes].map(cell).join(","));
+    return "\uFEFF" + head.join(",") + "\r\n" + rows.join("\r\n") + "\r\n";
+  }
+
+  /* =====================================================================
+     BIBLIOGRAFÍA: lista, filtros y acciones
+     ===================================================================== */
+  function filteredSources() {
+    const q = ($("sourceSearch")?.value || "").toLowerCase().trim();
+    const pf = $("sourceProjectFilter")?.value || "all";
+    return sources.filter(s => {
+      if (pf === "none" && s.projectId && projects.some(p => p.id === s.projectId)) return false;
+      if (pf !== "all" && pf !== "none" && s.projectId !== pf) return false;
+      return !q || [s.title, s.author, s.doi, s.url, s.container, s.notes].join(" ").toLowerCase().includes(q);
+    });
+  }
+  function refreshProjectFilters() {
+    const filter = $("sourceProjectFilter");
+    const prev = filter.value || "all";
+    const opts = projects.map(p => '<option value="' + escapeHtml(p.id) + '">' + escapeHtml(p.name) + "</option>").join("");
+    filter.innerHTML = '<option value="all">Todos los proyectos</option><option value="none">Sin proyecto</option>' + opts;
+    filter.value = [...filter.options].some(o => o.value === prev) ? prev : "all";
+    $("srcProject").innerHTML = '<option value="">Sin proyecto</option>' + opts;
+  }
+  function renderSources() {
+    const box = $("sourceList");
+    if (!box) return;
+    refreshProjectFilters();
+    const list = filteredSources();
+    $("sourceCount").textContent = list.length + (list.length === 1 ? " fuente" : " fuentes");
+    if (!list.length) {
+      box.innerHTML = emptyStateHtml("", sources.length ? "No hay coincidencias" : "No hay fuentes registradas",
+        sources.length ? "Prueba otro término o cambia el filtro de proyecto." : "Añade referencias y comprueba su existencia en el documento original.",
+        sources.length ? "" : '<button type="button" class="primary-btn" data-action="add-source">＋ Añadir fuente</button>');
+      return;
+    }
+    box.innerHTML = list.map(s => {
+      const proj = projects.find(p => p.id === s.projectId);
+      const meta = [SOURCE_TYPES[s.type], s.doi ? "DOI: " + s.doi : "", proj ? "Proyecto: " + proj.name : ""].filter(Boolean).join(" · ");
+      return '<article class="project-card" data-id="' + escapeHtml(s.id) + '">' +
+        "<h3>" + escapeHtml(s.title) + "</h3>" +
+        "<p>" + escapeHtml([s.author, s.year].filter(Boolean).join(" · ") || "Datos bibliográficos pendientes") + "</p>" +
+        '<div class="project-meta"><span class="badge ' + (s.verified ? "ok" : "") + '">' + (s.verified ? "Verificada manualmente" : "Pendiente de verificar") +
+        "</span> " + escapeHtml(meta) + "</div>" +
+        '<div class="project-actions">' +
+        '<button type="button" class="secondary-btn" data-action="copy-cite">Copiar cita</button>' +
+        (s.url || s.doi ? '<button type="button" class="secondary-btn" data-action="open-source">Abrir enlace</button>' : "") +
+        '<button type="button" class="secondary-btn" data-action="toggle-verified">' + (s.verified ? "Quitar verificación" : "Marcar verificada") + "</button>" +
+        '<button type="button" class="secondary-btn" data-action="edit-source">Editar</button>' +
+        '<button type="button" class="danger-btn" data-action="delete-source">Eliminar</button></div></article>';
+    }).join("");
+  }
+  function saveSources() {
+    if (!safeWrite(SOURCES_KEY, sources)) showToast("No se pudieron guardar las fuentes. Exporta una copia y libera espacio.");
+    renderSources();
+    updateProjectBar();
+    if (!$("projectsView").hidden || !$("homeView").hidden) renderProjects();
+  }
+  function openSource(id) {
+    const s = sources.find(x => x.id === id);
+    const url = s && (safeUrl(s.url) || (s.doi ? "https://doi.org/" + s.doi : ""));
+    if (url) window.open(url, "_blank", "noopener,noreferrer");
+  }
+  function toggleVerified(id) {
+    const s = sources.find(x => x.id === id);
+    if (!s) return;
+    s.verified = !s.verified; s.updatedAt = new Date().toISOString();
+    saveSources();
+  }
+  function deleteSource(id) {
+    const index = sources.findIndex(s => s.id === id);
+    if (index < 0) return;
+    const removed = sources[index];
+    sources.splice(index, 1);
+    saveSources();
+    showToast("Fuente eliminada.", {
+      action: { label: "Deshacer", run: () => { sources.splice(Math.min(index, sources.length), 0, removed); saveSources(); showToast("Fuente restaurada."); } }
+    });
+  }
+  async function copyCite(id) {
+    const s = sources.find(x => x.id === id);
+    if (!s) return;
+    const style = currentCiteStyle();
+    const ok = await copyText(formatCitation(s, style));
+    showToast(ok ? "Cita en " + style + " copiada. Revisa el formato antes de entregar." : "No se pudo copiar la cita.");
+  }
+  function exportSourcesAs(format) {
+    const list = filteredSources();
+    if (!list.length) { showToast("No hay fuentes para exportar con el filtro actual."); return; }
+    const style = currentCiteStyle();
+    if (format === "json") {
+      downloadJson({ format: "navegador-academico-sources", version: 2, schemaVersion: SCHEMA_VERSION, sources: list }, "bibliografia-navegador-academico.json");
+      showToast("Bibliografía exportada (JSON).");
+    } else if (format === "bibtex") {
+      downloadBlob(toBibTeX(list), "bibliografia.bib", "application/x-bibtex;charset=utf-8");
+      showToast("Exportado en BibTeX.");
+    } else if (format === "ris") {
+      downloadBlob(toRIS(list), "bibliografia.ris", "application/x-research-info-systems;charset=utf-8");
+      showToast("Exportado en RIS (Zotero, Mendeley, EndNote).");
+    } else if (format === "csv") {
+      downloadBlob(toCSV(list), "bibliografia.csv", "text/csv;charset=utf-8");
+      showToast("Exportado en CSV.");
+    } else if (format === "text") {
+      copyText(formatBibliography(list, style).join("\n\n")).then(ok =>
+        showToast(ok ? "Bibliografía en " + style + " copiada (" + list.length + ")." : "No se pudo copiar."));
+    }
+  }
+  function importSources(e) {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const d = JSON.parse(r.result);
+        if (!d || d.format !== "navegador-academico-sources" || ![1, 2].includes(d.version) || !Array.isArray(d.sources)) throw new Error("formato");
+        const incoming = sanitizeList(d.sources, sanitizeSource, 5000);
+        const replace = confirm("Aceptar = reemplazar las fuentes actuales por las " + incoming.length + " importadas.\nCancelar = añadirlas a las existentes (se omiten duplicadas).");
+        if (replace) sources = incoming;
+        else {
+          const ids = new Set(sources.map(s => s.id));
+          const keys = new Set(sources.map(s => (s.doi || s.title).toLowerCase()));
+          incoming.forEach(s => { if (!ids.has(s.id) && !keys.has((s.doi || s.title).toLowerCase())) sources.push(s); });
+        }
+        saveSources();
+        showToast("Bibliografía importada.");
+      } catch { showToast("Archivo inválido. No se modificaron los datos."); }
+      finally { e.target.value = ""; }
+    };
+    r.readAsText(f);
+  }
+
+  /* ---------- formulario de fuente (diálogo) ---------- */
+  let editingSourceId = null;
+  function openSourceDialog(id = null, presetProject = "") {
+    editingSourceId = id;
+    refreshProjectFilters();
+    const s = id ? sources.find(x => x.id === id) : null;
+    $("sourceDialogTitle").textContent = s ? "Editar fuente" : "Añadir fuente";
+    $("srcType").value = s?.type || "article";
+    $("srcTitle").value = s?.title || "";
+    $("srcAuthor").value = s?.author || "";
+    $("srcYear").value = s?.year || "";
+    $("srcContainer").value = s?.container || "";
+    $("srcVolume").value = s?.volume || "";
+    $("srcIssue").value = s?.issue || "";
+    $("srcPages").value = s?.pages || "";
+    $("srcUrl").value = s?.url || "";
+    $("srcDoi").value = s?.doi || "";
+    $("srcNotes").value = s?.notes || "";
+    $("srcVerified").checked = !!s?.verified;
+    const wanted = s ? s.projectId : (presetProject || activeProjectId || "");
+    $("srcProject").value = projects.some(p => p.id === wanted) ? wanted : "";
+    $("srcError").textContent = "";
+    $("srcDoiHint").textContent = "Consulta Crossref (requiere conexión). Revisa siempre los datos obtenidos.";
+    $("sourceDialog").showModal();
+    $("srcTitle").focus();
+  }
+  function submitSourceForm(e) {
+    e.preventDefault();
+    const err = msg => { $("srcError").textContent = msg; };
+    const title = $("srcTitle").value.trim();
+    if (!title) { err("El título es obligatorio."); $("srcTitle").focus(); return; }
+    const yearRaw = $("srcYear").value.trim();
+    if (yearRaw && !/^\d{4}[a-z]?$/.test(yearRaw)) { err("El año debe tener 4 dígitos (por ejemplo 2024 o 2024a)."); $("srcYear").focus(); return; }
+    const urlRaw = $("srcUrl").value.trim();
+    if (urlRaw && !safeUrl(urlRaw)) { err("La URL debe comenzar por http:// o https://."); $("srcUrl").focus(); return; }
+    const doiRaw = $("srcDoi").value.trim();
+    if (doiRaw && !normalizeDoi(doiRaw)) { err("El DOI no tiene un formato válido (por ejemplo 10.1000/xyz123)."); $("srcDoi").focus(); return; }
+    const now = new Date().toISOString();
+    const data = sanitizeSource({
+      id: editingSourceId || newId("src"), type: $("srcType").value, title, author: $("srcAuthor").value, year: yearRaw,
+      container: $("srcContainer").value, volume: $("srcVolume").value, issue: $("srcIssue").value, pages: $("srcPages").value,
+      url: urlRaw, doi: doiRaw, notes: $("srcNotes").value, projectId: $("srcProject").value, verified: $("srcVerified").checked,
+      createdAt: sources.find(x => x.id === editingSourceId)?.createdAt || now, updatedAt: now
+    });
+    if (!data) { err("No se pudo guardar la fuente."); return; }
+    const i = sources.findIndex(x => x.id === editingSourceId);
+    if (i > -1) sources[i] = data; else sources.unshift(data);
+    $("sourceDialog").close();
+    saveSources();
+    showToast(i > -1 ? "Fuente actualizada." : "Fuente registrada" + (data.verified ? "." : " como pendiente de verificar."));
+  }
+  function htmlToText(html) {
+    return new DOMParser().parseFromString(String(html || ""), "text/html").documentElement.textContent.trim();
+  }
+  async function fetchDoi() {
+    const doi = normalizeDoi($("srcDoi").value);
+    const hint = $("srcDoiHint"), btn = $("srcDoiFetch");
+    if (!doi) { hint.textContent = "Escribe un DOI válido, por ejemplo 10.1000/xyz123."; $("srcDoi").focus(); return; }
+    btn.disabled = true; hint.textContent = "Consultando Crossref…";
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 10000);
+    try {
+      const res = await fetch("https://api.crossref.org/works/" + encodeURIComponent(doi), { signal: ctrl.signal, headers: { Accept: "application/json" } });
+      if (res.status === 404) throw new Error("No se encontró ese DOI en Crossref.");
+      if (!res.ok) throw new Error("Crossref respondió con el código " + res.status + ".");
+      const m = (await res.json()).message || {};
+      const typeMap = { "journal-article": "article", book: "book", monograph: "book", "edited-book": "book", "book-chapter": "chapter", dissertation: "thesis", report: "report" };
+      $("srcDoi").value = doi;
+      if (m.title && m.title[0]) $("srcTitle").value = htmlToText(m.title[0]);
+      if (Array.isArray(m.author) && m.author.length) {
+        $("srcAuthor").value = m.author.map(a => a.family ? (a.given ? a.family + ", " + a.given : a.family) : (a.name || "")).filter(Boolean).join("; ");
+      }
+      const yr = m.issued?.["date-parts"]?.[0]?.[0] || m.published?.["date-parts"]?.[0]?.[0];
+      if (yr) $("srcYear").value = String(yr);
+      const cont = (m["container-title"] && m["container-title"][0]) || m.publisher || "";
+      if (cont) $("srcContainer").value = htmlToText(cont);
+      if (m.volume) $("srcVolume").value = m.volume;
+      if (m.issue) $("srcIssue").value = m.issue;
+      if (m.page) $("srcPages").value = m.page;
+      if (m.URL && !$("srcUrl").value.trim() && safeUrl(m.URL)) $("srcUrl").value = safeUrl(m.URL);
+      $("srcType").value = typeMap[m.type] || "other";
+      $("srcVerified").checked = false;
+      hint.textContent = "Datos cargados desde Crossref. Revísalos y márcala como verificada solo tras comprobar el documento original.";
+    } catch (err) {
+      hint.textContent = err.name === "AbortError" ? "Crossref tardó demasiado. Inténtalo de nuevo." :
+        (err.message && !/fetch/i.test(err.message) ? err.message : "No se pudo consultar Crossref. Revisa tu conexión.");
+    } finally { clearTimeout(timer); btn.disabled = false; }
+  }
+
+  /* =====================================================================
+     EXPORTAR PROYECTO A MARKDOWN
+     ===================================================================== */
+  function exportMarkdown() {
+    const st = captureCurrentState();
+    const p = getActiveProject();
+    const style = CITE_STYLES.includes(st.citation) ? st.citation : "APA 7";
+    const linked = p ? sourcesOf(p.id) : [];
+    const lines = ["# " + (st.topic || (p && p.name) || "Investigación"), "",
+      "- **Tipo de trabajo:** " + st.workType, "- **Enfoque:** " + st.approach, "- **Nivel:** " + st.level,
+      "- **Norma de citación:** " + st.citation, "- **Fuentes mínimas:** " + st.sources, "- **Rango temporal:** " + st.years,
+      "- **Idioma:** " + st.language, "- **Profundidad:** " + st.depth];
+    if (st.context) lines.push("- **Contexto:** " + st.context);
+    if (st.question) lines.push("- **Pregunta de investigación:** " + st.question);
+    lines.push("", "## Prompt", "", "````text", $("finalPrompt").value, "````");
+    if (linked.length) {
+      lines.push("", "## Fuentes vinculadas (" + style + ")", "", ...formatBibliography(linked, style).map(c => "- " + c));
+      if (st.citation !== style) lines.push("", "_La norma «" + st.citation + "» aún no tiene formateador; se usó " + style + "._");
+    }
+    downloadBlob(lines.join("\n") + "\n", slug(st.topic || (p && p.name)) + ".md", "text/markdown;charset=utf-8");
+    showToast("Archivo .md descargado.");
+  }
+
+  /* =====================================================================
+     INICIO Y EVENTOS
+     ===================================================================== */
+  function migrateData() {
+    const version = Number(localStorage.getItem(SCHEMA_KEY)) || 1;
+    const rawProjects = safeRead(PROJECTS_KEY, []);
+    const rawSources = safeRead(SOURCES_KEY, []);
+    projects = Array.isArray(rawProjects) ? sanitizeList(rawProjects, sanitizeProject, 500) : [];
+    sources = Array.isArray(rawSources) ? sanitizeList(rawSources, sanitizeSource, 5000) : [];
+    if (version < SCHEMA_VERSION) {
+      safeWrite(PROJECTS_KEY, projects);
+      safeWrite(SOURCES_KEY, sources);
+      try { localStorage.setItem(SCHEMA_KEY, String(SCHEMA_VERSION)); } catch {}
+    }
+  }
+  function initProjects() {
+    migrateData();
+    const old = safeRead(STORAGE_KEY, null);
+    if (!projects.length && old && (old.topic || old.structures || old.workType)) {
+      const now = new Date().toISOString();
+      projects.push({ id: newId("proj"), name: (old.topic || "Mi primera investigación").slice(0, 90), createdAt: now, updatedAt: now, state: sanitizeState(old), prompt: $("finalPrompt").value || "" });
+      persistProjects(false);
+    }
+    const saved = localStorage.getItem(ACTIVE_KEY);
+    const target = projects.find(p => p.id === saved) ||
+      projects.slice().sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))[0];
+    if (target) applyProject(target); else updateProjectBar();
+    renderProjects(); renderTemplates(); renderSources(); renderPresets(); renderHistory();
+    updateBackupBanner();
+  }
+
+  const ACTIONS = {
+    "new-project": () => newProject(),
+    "open-project": id => openProject(id),
+    "rename-project": id => renameProject(id),
+    "duplicate-project": id => duplicateProject(id),
+    "delete-project": id => deleteProject(id),
+    "project-sources": id => { showView("bibliography"); $("sourceProjectFilter").value = id; renderSources(); },
+    "use-template": (id, el) => useTemplate(el.closest("[data-template]")?.dataset.template),
+    "add-source": () => openSourceDialog(),
+    "edit-source": id => openSourceDialog(id),
+    "delete-source": id => deleteSource(id),
+    "open-source": id => openSource(id),
+    "copy-cite": id => copyCite(id),
+    "toggle-verified": id => toggleVerified(id),
+    "rename-active": () => activeProjectId && renameProject(activeProjectId),
+    "sources-active": () => { showView("bibliography"); if (activeProjectId) { $("sourceProjectFilter").value = activeProjectId; renderSources(); } },
+    "save-as-project": () => saveAsProject(),
+    "go-view": (_id, el) => showView(el.dataset.target),
+    "export-backup": () => exportAllProjects(),
+    "snooze-backup": () => { try { localStorage.setItem(SNOOZE_KEY, String(Date.now() + 7 * 86400000)); } catch {} updateBackupBanner(); },
+    "close-dialog": (_id, el) => el.closest("dialog").close()
+  };
+
+  function initPlatform() {
+    initProjects();
+    document.addEventListener("click", e => {
+      const el = e.target.closest("[data-action]");
+      if (!el) return;
+      const fn = ACTIONS[el.dataset.action];
+      if (!fn) return;
+      const card = el.closest("[data-id]");
+      fn(card ? card.dataset.id : "", el);
+    });
+    const tabs = document.querySelector(".app-nav");
+    tabs.addEventListener("click", e => {
+      const b = e.target.closest(".nav-btn");
+      if (b) showView(b.dataset.view, true);
+    });
+    tabs.addEventListener("keydown", onTabKeydown);
+    $("projectSearch").addEventListener("input", () => renderProjectBox("allProjects", $("projectSearch").value));
+    $("sourceSearch").addEventListener("input", debounce(renderSources, 150));
+    $("sourceProjectFilter").addEventListener("change", renderSources);
+    $("projectImport").addEventListener("change", importAllProjects);
+    $("sourceImport").addEventListener("change", importSources);
+    $("sourceForm").addEventListener("submit", submitSourceForm);
+    $("srcDoiFetch").addEventListener("click", fetchDoi);
+    $("srcDoi").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); fetchDoi(); } });
+    $("exportFormat").addEventListener("change", e => {
+      const v = e.target.value;
+      if (v) exportSourcesAs(v);
+      e.target.value = "";
+    });
+    const savedStyle = localStorage.getItem(CITE_STYLE_KEY);
+    const fromProject = CITE_STYLES.includes($("citation").value) ? $("citation").value : "APA 7";
+    $("citeStyle").value = CITE_STYLES.includes(savedStyle) ? savedStyle : fromProject;
+    $("citeStyle").addEventListener("change", () => { try { localStorage.setItem(CITE_STYLE_KEY, $("citeStyle").value); } catch {} });
+    $("presetSelect").addEventListener("change", () => { $("presetApply").disabled = $("presetDelete").disabled = !$("presetSelect").value; });
+    $("presetSave").addEventListener("click", savePreset);
+    $("presetApply").addEventListener("click", applyPreset);
+    $("presetDelete").addEventListener("click", deletePreset);
+    $("topic").addEventListener("change", () => {
+      const p = getActiveProject();
+      if (p) { p.name = $("topic").value.trim().slice(0, 90) || "Investigación sin título"; persistProjects(false); updateProjectBar(); }
+    });
+    window.addEventListener("pagehide", flushSave);
+    document.addEventListener("visibilitychange", () => { if (document.hidden) flushSave(); });
+    if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    }
+  }
+
   initTypeOptions();
   initTheme();
   restoreState();
@@ -1142,6 +2370,7 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
   renderStructures();
   bindInputs();
   generatePrompt();
+  initPlatform();
 </script>
 </body>
 </html>
