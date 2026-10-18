@@ -830,6 +830,9 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
   const PRESETS_KEY = "navegadorAcademicoPresetsV1";
   const BACKUP_KEY = "navegadorAcademicoLastBackup";
   const SNOOZE_KEY = "navegadorAcademicoBackupSnooze";
+  const SHEET_URL_KEY = "navegadorAcademicoSheetUrl";
+  const SHEET_TOKEN_KEY = "navegadorAcademicoSheetToken";
+  const SHEET_LAST_SYNC_KEY = "navegadorAcademicoSheetLastSync";
 
   /* ---------- utilidades generales ---------- */
 
@@ -1393,7 +1396,11 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
     "close-dialog": (_id, el) => el.closest("dialog").close(),
     "settings-export": () => exportAllData(),
     "settings-import": () => { if($("settingsImportFile")) $("settingsImportFile").click(); },
-    "settings-clear": () => clearAllData()
+    "settings-clear": () => clearAllData(),
+    "settings-save-sheet-config": () => saveSheetConfig(),
+    "settings-test-sheets": () => testSheetsConnection(),
+    "settings-push-sheets": () => pushToSheets(),
+    "settings-pull-sheets": () => pullFromSheets()
   };
 
   function initPlatform() {
@@ -1439,6 +1446,14 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
     if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
       navigator.serviceWorker.register("sw.js").catch(() => {});
     }
+    if ($("settingSheetUrl")) {
+      $("settingSheetUrl").addEventListener("change", saveSheetConfig);
+      $("settingSheetUrl").addEventListener("blur", saveSheetConfig);
+    }
+    if ($("settingSheetToken")) {
+      $("settingSheetToken").addEventListener("change", saveSheetConfig);
+      $("settingSheetToken").addEventListener("blur", saveSheetConfig);
+    }
   }
 
   initTypeOptions();
@@ -1469,6 +1484,19 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
       "<strong>Historial de temas:</strong> " + (Array.isArray(safeRead(HISTORY_KEY, [])) ? safeRead(HISTORY_KEY, []).length : 0) + "<br>" +
       "<strong>Configuraciones guardadas:</strong> " + (Array.isArray(safeRead(PRESETS_KEY, [])) ? safeRead(PRESETS_KEY, []).length : 0) + "<br>" +
       "<strong>Almacenamiento:</strong> IndexedDB (navegador-academico) + respaldo local en este equipo";
+    const sheetUrl = safeRead(SHEET_URL_KEY, "");
+    const sheetToken = safeRead(SHEET_TOKEN_KEY, "");
+    const lastSync = safeRead(SHEET_LAST_SYNC_KEY, null);
+    if($("settingSheetUrl")) $("settingSheetUrl").value = sheetUrl;
+    if($("settingSheetToken")) $("settingSheetToken").value = sheetToken;
+    const status = $("settingsSheetStatus");
+    if(status){
+      if(lastSync){
+        status.textContent = "Ultima sincronizacion: " + new Date(lastSync).toLocaleString("es-CO");
+      } else {
+        status.textContent = "Aun no se ha sincronizado con Google Sheets.";
+      }
+    }
   }
   function exportAllData(){
     const data = {
@@ -1521,4 +1549,85 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
     renderSettings(); renderProjects(); renderTemplates(); renderPresets(); renderHistory(); updateBackupBanner();
     if(!getActiveProject()) updateProjectBar();
     showToast("Todos los datos fueron eliminados.");
+  }
+
+  /* =====================================================================
+     GOOGLE SHEETS SYNC: web app personal del usuario
+     El usuario debe desplegar un Google Apps Script como "Web App" que exponga
+     un endpoint (GET para traer datos, POST para recibirlos) y definir un token.
+     Esta app solo le envia/recibe JSON con la llave de autorizacion Bearer.
+     ===================================================================== */
+  function saveSheetConfig(){
+    const url = ($("settingSheetUrl") || {}).value || "";
+    const token = ($("settingSheetToken") || {}).value || "";
+    safeWrite(SHEET_URL_KEY, url);
+    safeWrite(SHEET_TOKEN_KEY, token);
+    showToast(url ? "Conexion guardada." : "Conexion eliminada.");
+    const status = $("settingsSheetStatus");
+    if(status) status.textContent = url ? "Conexion guardada. Usa Subir o Descargar." : "Conexion eliminada.";
+  }
+
+  async function sheetsRequest(method, path, body){
+    const url = safeRead(SHEET_URL_KEY, "");
+    const token = safeRead(SHEET_TOKEN_KEY, "");
+    if(!url) throw new Error("Falta la URL del web app");
+    const headers = { "Content-Type": "application/json" };
+    if(token) headers["Authorization"] = "Bearer " + token;
+    const opts = { method, headers, mode: "cors" };
+    if(body) opts.body = JSON.stringify(body);
+    const res = await fetch(url, opts);
+    if(!res.ok) throw new Error("HTTP " + res.status + " " + res.statusText);
+    const text = await res.text();
+    if(!text) return null;
+    return JSON.parse(text);
+  }
+
+  async function testSheetsConnection(){
+    try{
+      await sheetsRequest("GET", null, null);
+      showToast("Conexion exitosa con Google Sheets.");
+    }catch(e){
+      showToast("Error de conexion: " + e.message);
+    }
+  }
+
+  async function pushToSheets(){
+    const data = {
+      format: "navegador-academico-sync", version: 1, schemaVersion: SCHEMA_VERSION,
+      exportedAt: new Date().toISOString(),
+      projects: projects,
+      sources: sources,
+      state: safeRead(STORAGE_KEY, null),
+      history: safeRead(HISTORY_KEY, []),
+      theme: safeRead(THEME_KEY, "system"),
+      presets: safeRead(PRESETS_KEY, [])
+    };
+    try{
+      const res = await sheetsRequest("POST", null, data);
+      safeWrite(SHEET_LAST_SYNC_KEY, new Date().toISOString());
+      renderSettings();
+      showToast("Subido a Google Sheets." + (res ? " Respuesta: " + JSON.stringify(res).slice(0,100) : ""));
+    }catch(e){
+      showToast("Error al subir: " + e.message);
+    }
+  }
+
+  async function pullFromSheets(){
+    try{
+      const d = await sheetsRequest("GET", null, null);
+      if(!d || d.format !== "navegador-academico-sync") throw new Error("formato invalido");
+      const reemplazar = confirm("Esto remplazara los datos actuales por los de Google Sheets. ¿Continuar?");
+      if(!reemplazar) return;
+      if(Array.isArray(d.projects)){ projects = sanitizeList(d.projects, sanitizeProject, 500); persistProjects(false); }
+      if(Array.isArray(d.sources)){ sources = d.sources.slice(0,5000); safeWrite(SOURCES_KEY, sources); }
+      if(d.state) safeWrite(STORAGE_KEY, sanitizeState(d.state));
+      if(Array.isArray(d.history)) safeWrite(HISTORY_KEY, d.history);
+      if(d.theme){ safeWrite(THEME_KEY, d.theme); const v=d.theme; const html=document.documentElement; if(v==="light"){html.dataset.theme="light";$("themeToggle").textContent="\u2600\uFE0F";}else if(v==="dark"){delete html.dataset.theme;$("themeToggle").textContent="\U0001F319";}else{const pl=window.matchMedia("(prefers-color-scheme: light)").matches; if(pl){html.dataset.theme="light";$("themeToggle").textContent="\u2600\uFE0F";}else{delete html.dataset.theme;$("themeToggle").textContent="\U0001F319";}} if($("settingTheme")) $("settingTheme").value = v === "system" ? "system" : (v === "light" ? "light" : "dark"); }
+      if(Array.isArray(d.presets)) safeWrite(PRESETS_KEY, d.presets);
+      safeWrite(SHEET_LAST_SYNC_KEY, new Date().toISOString());
+      renderSettings(); renderProjects(); renderTemplates(); renderPresets(); renderHistory(); updateBackupBanner();
+      showToast("Descargado desde Google Sheets.");
+    }catch(e){
+      showToast("Error al descargar: " + e.message);
+    }
   }
