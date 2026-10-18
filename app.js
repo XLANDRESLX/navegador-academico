@@ -1575,7 +1575,9 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
     if(token) headers["Authorization"] = "Bearer " + token;
     const opts = { method, headers, mode: "cors" };
     if(body) opts.body = JSON.stringify(body);
-    const res = await fetch(url, opts);
+    // Token por consulta para que Google Apps Script lo lea facilmente via e.parameter.token
+    const finalUrl = token ? (url + (url.includes("?") ? "&" : "?") + "token=" + encodeURIComponent(token)) : url;
+    const res = await fetch(finalUrl, opts);
     if(!res.ok) throw new Error("HTTP " + res.status + " " + res.statusText);
     const text = await res.text();
     if(!text) return null;
