@@ -58,6 +58,99 @@ const STRUCTURES = {
 
   const $ = id => document.getElementById(id);
 
+  /* ---------- capa IndexedDB (reemplaza localStorage) ---------- */
+  const IDB_NAME = "navegador-academico";
+  const IDB_VERSION = 1;
+  const IDB_STORE = "settings";
+  let idbDb = null;
+  let dbCache = {};
+  let idbReady = null;
+
+  function idbOpen(){
+    if(idbReady) return idbReady;
+    idbReady = new Promise((resolve, reject)=>{
+      const req = indexedDB.open(IDB_NAME, IDB_VERSION);
+      req.onupgradeneeded = ()=>{
+        const db = req.result;
+        if(!db.objectStoreNames.contains(IDB_STORE)){
+          db.createObjectStore(IDB_STORE, { keyPath: "key" });
+        }
+      };
+      req.onsuccess = ()=>{
+        idbDb = req.result;
+        loadCacheFromIDB().then(resolve).catch(reject);
+      };
+      req.onerror = ()=>reject(req.error);
+    });
+    return idbReady;
+  }
+  function loadCacheFromIDB(){
+    return idbOpen().then(()=>{
+      return new Promise((resolve, reject)=>{
+        const tx = idbDb.transaction(IDB_STORE, "readonly");
+        const store = tx.objectStore(IDB_STORE);
+        const getAll = store.getAll();
+        getAll.onsuccess = ()=>{
+          const rows = getAll.result || {};
+          rows.forEach(r=>{ dbCache[r.key] = r.value; });
+          resolve();
+        };
+        getAll.onerror = ()=>reject(getAll.error);
+      });
+    }).then(()=>{
+      // Migracion automatica de localStorage a IndexedDB (una sola vez)
+      const migrated = safeReadLocal("navegadorAcademicoMigratedV1", false);
+      if(!migrated){
+        const keys = ["generadorInvestigacionV2","generadorInvestigacionHistory","generadorInvestigacionTheme",
+          "navegadorAcademicoProjectsV1","navegadorAcademicoActiveV1","navegadorAcademicoSchema",
+          "navegadorAcademicoPresetsV1","navegadorAcademicoLastBackup","navegadorAcademicoBackupSnooze"];
+        let moved = false;
+        keys.forEach(k=>{
+          try{
+            const v = localStorage.getItem(k);
+            if(v !== null){
+              dbCache[k] = JSON.parse(v);
+              idbSetNow(k, dbCache[k]);
+              moved = true;
+            }
+          }catch{}
+        });
+        if(moved) safeWriteLocal("navegadorAcademicoMigratedV1", true);
+      }
+    });
+  }
+  function idbSetNow(key, value){
+    if(!idbDb) return;
+    const tx = idbDb.transaction(IDB_STORE, "readwrite");
+    tx.objectStore(IDB_STORE).put({ key: key, value: value });
+  }
+  function idbSet(key, value){
+    idbOpen().then(()=>idbSetNow(key, value)).catch(()=>{});
+  }
+  function idbDelete(key){
+    idbOpen().then(()=>{
+      const tx = idbDb.transaction(IDB_STORE, "readwrite");
+      tx.objectStore(IDB_STORE).delete(key);
+    }).catch(()=>{});
+  }
+  /* Lectura/escritura directa de localStorage (solo para migracion inicial) */
+  function safeReadLocal(key, fallback){
+    try{ const v = localStorage.getItem(key); return v === null ? fallback : JSON.parse(v); }catch{ return fallback; }
+  }
+  function safeWriteLocal(key, value){
+    try{ localStorage.setItem(key, JSON.stringify(value)); return true; }catch{ return false; }
+  }
+  /* API sincronica usada por el resto de la app (lee de cache en memoria, escribe en cache + IDB) */
+  function safeRead(key, fallback){
+    if(key in dbCache) return dbCache[key];
+    return fallback;
+  }
+  function safeWrite(key, value){
+    dbCache[key] = value;
+    idbSet(key, value);
+    return true;
+  }
+
   function cloneStructure(names){
     return names.map(name => ({name, active:true}));
   }
@@ -686,24 +779,22 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
     if(light){
       delete html.dataset.theme;
       $("themeToggle").textContent="🌙";
-      try{localStorage.setItem(THEME_KEY,"dark")}catch{}
+      try{safeWrite(THEME_KEY,"dark")}catch{}
     }else{
       html.dataset.theme="light";
       $("themeToggle").textContent="☀️";
-      try{localStorage.setItem(THEME_KEY,"light")}catch{}
+      try{safeWrite(THEME_KEY,"light")}catch{}
     }
   }
 
   function initTheme(){
-    let saved=null; try{saved=localStorage.getItem(THEME_KEY)}catch{}
+    let saved=null; try{saved=safeRead(THEME_KEY, null)}catch{}
     const prefersLight=window.matchMedia("(prefers-color-scheme: light)").matches;
     if(saved==="light" || (!saved && prefersLight)){
       document.documentElement.dataset.theme="light";
       $("themeToggle").textContent="☀️";
     }
-  }
-
-  function bindInputs(){
+  }  function bindInputs(){
     ["topic","approach","level","citation","sources","years","language","context","question","depth",
      "realSources","primarySources","tables","limitations"].forEach(id=>{
       $(id).addEventListener("input",()=>{
@@ -741,14 +832,7 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
   const SNOOZE_KEY = "navegadorAcademicoBackupSnooze";
 
   /* ---------- utilidades generales ---------- */
-  function safeRead(key, fallback) {
-    try { const v = JSON.parse(localStorage.getItem(key)); return v === null ? fallback : v; }
-    catch { return fallback; }
-  }
-  function safeWrite(key, value) {
-    try { localStorage.setItem(key, JSON.stringify(value)); return true; }
-    catch { return false; }
-  }
+
   function newId(prefix) {
     const rnd = (window.crypto && crypto.randomUUID)
       ? crypto.randomUUID().slice(0, 8)
@@ -926,8 +1010,8 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
   function setActiveProject(id) {
     activeProjectId = id || null;
     try {
-      if (activeProjectId) localStorage.setItem(ACTIVE_KEY, activeProjectId);
-      else localStorage.removeItem(ACTIVE_KEY);
+      if (activeProjectId) safeWrite(ACTIVE_KEY, activeProjectId);
+      else { idbDelete(ACTIVE_KEY); delete dbCache[ACTIVE_KEY]; }
     } catch {}
     updateProjectBar();
   }
@@ -1145,7 +1229,7 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
      RESPALDOS
      ===================================================================== */
   function markBackup() {
-    try { localStorage.setItem(BACKUP_KEY, String(Date.now())); localStorage.removeItem(SNOOZE_KEY); } catch {}
+    try { safeWrite(BACKUP_KEY, String(Date.now())); idbDelete(SNOOZE_KEY); delete dbCache[SNOOZE_KEY]; } catch {}
     updateBackupBanner();
   }
   function exportAllProjects() {
@@ -1185,8 +1269,8 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
     if (!banner) return;
     let show = false, days = 0;
     if (projects.length) {
-      const last = Number(localStorage.getItem(BACKUP_KEY)) || 0;
-      const snooze = Number(localStorage.getItem(SNOOZE_KEY)) || 0;
+      const last = Number(safeRead(BACKUP_KEY, 0)) || 0;
+      const snooze = Number(safeRead(SNOOZE_KEY, 0)) || 0;
       const oldest = projects.reduce((m, p) => Math.min(m, Date.parse(p.createdAt) || m), Date.now());
       const ref = last || oldest;
       days = Math.floor((Date.now() - ref) / 86400000);
@@ -1194,16 +1278,15 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
     }
     banner.hidden = !show;
     if (show) {
-      $("backupBannerText").textContent = localStorage.getItem(BACKUP_KEY)
-        ? "Hace " + days + " días que no exportas una copia de seguridad. Tus datos viven solo en este navegador."
-        : "Aún no has exportado ninguna copia de seguridad. Si limpias el navegador, perderás tus proyectos y fuentes.";
+      const lastVal = safeRead(BACKUP_KEY, null);
+      $("backupBannerText").textContent = lastVal
+        ? "Hace " + days + " dias que no exportas una copia de seguridad. Tus datos viven solo en este navegador."
+        : "Aun no has exportado ninguna copia de seguridad. Si limpias el navegador, perderas tus proyectos y fuentes.";
     }
-  }
-
-  /* =====================================================================
+  }  /* =====================================================================
      NAVEGACIÓN (pestañas accesibles)
      ===================================================================== */
-  const VIEWS = { home: "homeView", projects: "projectsView", generator: "generatorView", templates: "templatesView" };
+  const VIEWS = { home: "homeView", projects: "projectsView", generator: "generatorView", templates: "templatesView", settings: "settingsView" };
   function showView(name, fromTab = false) {
     if (!VIEWS[name]) return;
     flushSave();
@@ -1216,6 +1299,7 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
     });
     if (name === "projects" || name === "home") renderProjects();
     if (name === "home") updateBackupBanner();
+    if (name === "settings") renderSettings();
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (!fromTab) $(VIEWS[name]).focus({ preventScroll: true });
   }
@@ -1255,31 +1339,46 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
      INICIO Y EVENTOS
      ===================================================================== */
   function migrateData() {
-    const version = Number(localStorage.getItem(SCHEMA_KEY)) || 1;
+    const version = Number(safeRead(SCHEMA_KEY, 1)) || 1;
     const rawProjects = safeRead(PROJECTS_KEY, []);
     projects = Array.isArray(rawProjects) ? sanitizeList(rawProjects, sanitizeProject, 500) : [];
     if (version < SCHEMA_VERSION) {
       safeWrite(PROJECTS_KEY, projects);
-      try { localStorage.setItem(SCHEMA_KEY, String(SCHEMA_VERSION)); } catch {}
+      try { safeWrite(SCHEMA_KEY, String(SCHEMA_VERSION)); } catch {}
     }
-  }
-  function initProjects() {
-    migrateData();
-    const old = safeRead(STORAGE_KEY, null);
-    if (!projects.length && old && (old.topic || old.structures || old.workType)) {
-      const now = new Date().toISOString();
-      projects.push({ id: newId("proj"), name: (old.topic || "Mi primera investigación").slice(0, 90), createdAt: now, updatedAt: now, state: sanitizeState(old), prompt: $("finalPrompt").value || "" });
-      persistProjects(false);
-    }
-    const saved = localStorage.getItem(ACTIVE_KEY);
-    const target = projects.find(p => p.id === saved) ||
-      projects.slice().sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))[0];
-    if (target) applyProject(target); else updateProjectBar();
-    renderProjects(); renderTemplates(); renderPresets(); renderHistory();
-    updateBackupBanner();
-  }
-
-  const ACTIONS = {
+  }  function initProjects() {
+    idbOpen().then(()=>{
+      migrateData();
+      const old = safeRead(STORAGE_KEY, null);
+      if (!projects.length && old && (old.topic || old.structures || old.workType)) {
+        const now = new Date().toISOString();
+        projects.push({ id: newId("proj"), name: (old.topic || "Mi primera investigacion").slice(0, 90), createdAt: now, updatedAt: now, state: sanitizeState(old), prompt: $("finalPrompt").value || "" });
+        persistProjects(false);
+      }
+      const saved = safeRead(ACTIVE_KEY, null);
+      const target = projects.find(p => p.id === saved) ||
+        projects.slice().sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))[0];
+      if (target) applyProject(target); else updateProjectBar();
+      renderProjects(); renderTemplates(); renderPresets(); renderHistory();
+      updateBackupBanner();
+      if($("settingsRender")) renderSettings();
+    }).catch(()=>{
+      migrateData();
+      const old = safeRead(STORAGE_KEY, null);
+      if (!projects.length && old && (old.topic || old.structures || old.workType)) {
+        const now = new Date().toISOString();
+        projects.push({ id: newId("proj"), name: (old.topic || "Mi primera investigacion").slice(0, 90), createdAt: now, updatedAt: now, state: sanitizeState(old), prompt: $("finalPrompt").value || "" });
+        persistProjects(false);
+      }
+      const saved = safeRead(ACTIVE_KEY, null);
+      const target = projects.find(p => p.id === saved) ||
+        projects.slice().sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))[0];
+      if (target) applyProject(target); else updateProjectBar();
+      renderProjects(); renderTemplates(); renderPresets(); renderHistory();
+      updateBackupBanner();
+      if($("settingsRender")) renderSettings();
+    });
+  }  const ACTIONS = {
     "new-project": () => newProject(),
     "open-project": id => openProject(id),
     "rename-project": id => renameProject(id),
@@ -1290,8 +1389,11 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
     "save-as-project": () => saveAsProject(),
     "go-view": (_id, el) => showView(el.dataset.target),
     "export-backup": () => exportAllProjects(),
-    "snooze-backup": () => { try { localStorage.setItem(SNOOZE_KEY, String(Date.now() + 7 * 86400000)); } catch {} updateBackupBanner(); },
-    "close-dialog": (_id, el) => el.closest("dialog").close()
+    "snooze-backup": () => { try { safeWrite(SNOOZE_KEY, String(Date.now() + 7 * 86400000)); } catch {} updateBackupBanner(); },
+    "close-dialog": (_id, el) => el.closest("dialog").close(),
+    "settings-export": () => exportAllData(),
+    "settings-import": () => { if($("settingsImportFile")) $("settingsImportFile").click(); },
+    "settings-clear": () => clearAllData()
   };
 
   function initPlatform() {
@@ -1349,3 +1451,74 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
   bindInputs();
   generatePrompt();
   initPlatform();
+  if($("settingsRender")) renderSettings();
+
+  /* =====================================================================
+     CONFIGURACION: render, exportar, importar, limpiar
+     ===================================================================== */
+  function renderSettings(){
+    const info = $("settingsInfo");
+    if(!info) return;
+    let nProy = 0, nFuentes = 0;
+    try{ nProy = Array.isArray(projects) ? projects.length : 0; }catch{}
+    try{ nFuentes = Array.isArray(sources) ? sources.length : 0; }catch{}
+    const tema = safeRead(THEME_KEY, "system");
+    const temaTexto = tema === "light" ? "Claro" : (tema === "dark" ? "Oscuro" : "Sistema");
+    if($("settingTheme")) $("settingTheme").value = tema;
+    info.innerHTML = "<strong>Proyectos:</strong> " + nProy + "<br>" +
+      "<strong>Historial de temas:</strong> " + (Array.isArray(safeRead(HISTORY_KEY, [])) ? safeRead(HISTORY_KEY, []).length : 0) + "<br>" +
+      "<strong>Configuraciones guardadas:</strong> " + (Array.isArray(safeRead(PRESETS_KEY, [])) ? safeRead(PRESETS_KEY, []).length : 0) + "<br>" +
+      "<strong>Almacenamiento:</strong> IndexedDB (navegador-academico) + respaldo local en este equipo";
+  }
+  function exportAllData(){
+    const data = {
+      format: "navegador-academico-settings", version: 1, schemaVersion: SCHEMA_VERSION,
+      exportedAt: new Date().toISOString(),
+      projects: projects,
+      sources: sources,
+      state: safeRead(STORAGE_KEY, null),
+      history: safeRead(HISTORY_KEY, []),
+      theme: safeRead(THEME_KEY, "system"),
+      presets: safeRead(PRESETS_KEY, [])
+    };
+    downloadJson(data, "configuracion-navegador-academico.json", "application/json;charset=utf-8");
+    showToast("Configuracion exportada.");
+  }
+  function importAllData(e){
+    const f = e && e.target && e.target.files && e.target.files[0];
+    if(!f) return;
+    if(f.size > 50 * 1024 * 1024){ showToast("El archivo es demasiado grande."); e.target.value=""; return; }
+    const r = new FileReader();
+    r.onload = ()=>{
+      try{
+        const d = JSON.parse(r.result);
+        if(!d || d.format !== "navegador-academico-settings") throw new Error("formato");
+        const reemplazar = confirm("Esto remplazara los proyectos, fuentes y configuracion actuales por los del archivo. ¿Continuar?");
+        if(!reemplazar) return;
+        if(Array.isArray(d.projects)){ projects = sanitizeList(d.projects, sanitizeProject, 500); persistProjects(false); }
+        if(Array.isArray(d.sources)){ sources = d.sources.slice(0, 5000); safeWrite(SOURCES_KEY, sources); }
+        if(d.state) safeWrite(STORAGE_KEY, sanitizeState(d.state));
+        if(Array.isArray(d.history)) safeWrite(HISTORY_KEY, d.history);
+        if(d.theme){ safeWrite(THEME_KEY, d.theme); const v=d.theme; const html=document.documentElement; if(v==="light"){html.dataset.theme="light";$("themeToggle").textContent="☀️";}else if(v==="dark"){delete html.dataset.theme;$("themeToggle").textContent="🌙";}else{const pl=window.matchMedia("(prefers-color-scheme: light)").matches; if(pl){html.dataset.theme="light";$("themeToggle").textContent="☀️";}else{delete html.dataset.theme;$("themeToggle").textContent="🌙";}} if($("settingTheme")) $("settingTheme").value = v === "system" ? "system" : (v === "light" ? "light" : "dark"); }
+        if(Array.isArray(d.presets)) safeWrite(PRESETS_KEY, d.presets);
+        renderSettings(); renderProjects(); renderTemplates(); renderPresets(); renderHistory(); updateBackupBanner();
+        if($("settingTheme")){ const vv = safeRead(THEME_KEY,"system"); if($("settingTheme").value !== (vv==="system"?"system":(vv==="light"?"light":"dark"))){ $("settingTheme").value = vv==="system"?"system":(vv==="light"?"light":"dark"); } }
+        showToast("Configuracion importada.");
+      }catch{ showToast("Archivo invalido. No se modificaron los datos."); }
+      finally{ e.target.value=""; }
+    };
+    r.readAsText(f);
+  }
+  function clearAllData(){
+    if(!confirm("Esto borrara TODOS los proyectos, fuentes, historial y configuracion guardados en este navegador. No se puede deshacer. ¿Continuar?")) return;
+    projects = []; sources = [];
+    persistProjects(false);
+    try{
+      const keys = [STORAGE_KEY, HISTORY_KEY, THEME_KEY, PROJECTS_KEY, ACTIVE_KEY, SCHEMA_KEY, PRESETS_KEY, BACKUP_KEY, SNOOZE_KEY];
+      keys.forEach(k=>{ idbDelete(k); delete dbCache[k]; });
+      safeWrite(SCHEMA_KEY, String(SCHEMA_VERSION));
+    }catch{}
+    renderSettings(); renderProjects(); renderTemplates(); renderPresets(); renderHistory(); updateBackupBanner();
+    if(!getActiveProject()) updateProjectBar();
+    showToast("Todos los datos fueron eliminados.");
+  }
