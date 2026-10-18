@@ -1,0 +1,14 @@
+# Python temporales
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Dependencias (por si se añaden luego)
+node_modules/
