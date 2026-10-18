@@ -1571,8 +1571,7 @@ La prioridad es la rigurosidad y la trazabilidad de las fuentes. No inventes inf
     const url = safeRead(SHEET_URL_KEY, "");
     const token = safeRead(SHEET_TOKEN_KEY, "");
     if(!url) throw new Error("Falta la URL del web app");
-    const headers = { "Content-Type": "application/json" };
-    if(token) headers["Authorization"] = "Bearer " + token;
+    const headers = { "Content-Type": "text/plain" }; // Evita preflight CORS
     const opts = { method, headers, mode: "cors" };
     if(body) opts.body = JSON.stringify(body);
     // Token por consulta para que Google Apps Script lo lea facilmente via e.parameter.token
