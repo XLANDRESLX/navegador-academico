@@ -1334,7 +1334,6 @@ const ENGINE_NAMES = {
   google: "Google Search",
   perplexity: "Perplexity",
   brave: "Brave",
-  bing: "Bing",
   chatgpt: "ChatGPT",
   gemini: "Gemini",
 };
@@ -1370,7 +1369,6 @@ function runSearch(engine) {
     google: "https://www.google.com/search?q=" + encFull,
     perplexity: "https://www.perplexity.ai/search?q=" + encFull,
     brave: "https://search.brave.com/ask?q=" + encFull,
-    bing: "https://www.bing.com/search?q=" + encFull,
     chatgpt: "https://chatgpt.com/?q=" + encFull,
     gemini: "https://gemini.google.com/app",
   };
