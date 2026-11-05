@@ -1,7 +1,7 @@
 {
-  "name": "Navegador Académico",
-  "short_name": "Académico",
-  "description": "Organiza proyectos académicos, fuentes y prompts de investigación.",
+  "name": "Generador Académico",
+  "short_name": "Generador",
+  "description": "Genera prompts de investigación académica y guarda tu historial localmente.",
   "lang": "es",
   "start_url": "./",
   "scope": "./",

@@ -7,241 +7,264 @@
   <meta name="theme-color" content="#0a0f18">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <title>Navegador Académico · Espacio de investigación</title>
-  <meta name="description" content="Organiza proyectos académicos y crea prompts de investigación.">
+  <title>Generador Académico · Prompts de investigación</title>
+  <meta name="description" content="Crea prompts de investigación académica rigurosos y guarda tus trabajos en el historial local del navegador.">
   <link rel="stylesheet" href="style.css" />
-
 </head>
 <body>
   <a class="skip-link" href="#main">Saltar al contenido</a>
   <main class="container" id="main" tabindex="-1">
-    <section class="hero"><div class="hero-row"><div><span class="eyebrow">📚 TU ESPACIO DE INVESTIGACIÓN</span><h1>Navegador Académico</h1><p class="subtitle">Organiza tus trabajos, prepara investigaciones rigurosas y conserva tus avances en un espacio de trabajo sencillo y ligero.</p><div class="hero-actions"><button type="button" class="primary-btn" data-action="go-view" data-target="generator">＋ Crear investigación</button><button type="button" class="secondary-btn" data-action="go-view" data-target="projects">Ver mis proyectos</button></div></div><button type="button" class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Cambiar tema">🌙</button></div></section>
-    <nav class="app-nav" role="tablist" aria-label="Secciones de la aplicación"><button type="button" class="nav-btn active" role="tab" id="tab-home" data-view="home" aria-controls="homeView" aria-selected="true" tabindex="0">⌂ Inicio</button><button type="button" class="nav-btn" role="tab" id="tab-projects" data-view="projects" aria-controls="projectsView" aria-selected="false" tabindex="-1">▣ Proyectos</button><button type="button" class="nav-btn" role="tab" id="tab-generator" data-view="generator" aria-controls="generatorView" aria-selected="false" tabindex="-1">✎ Generador</button><button type="button" class="nav-btn" role="tab" id="tab-templates" data-view="templates" aria-controls="templatesView" aria-selected="false" tabindex="-1">▤ Plantillas</button><button type="button" class="nav-btn" role="tab" id="tab-settings" data-view="settings" aria-controls="settingsView" aria-selected="false" tabindex="-1">⚙️ Configuración</button></nav>
-    <section class="view" id="homeView" role="tabpanel" aria-labelledby="tab-home" tabindex="-1"><div id="backupBanner" class="notice" hidden><span id="backupBannerText"></span><div class="notice-actions"><button type="button" class="primary-btn" data-action="export-backup">Exportar copia ahora</button><button type="button" class="secondary-btn" data-action="snooze-backup">Recordármelo en 7 días</button></div></div><div class="dashboard-grid"><div class="metric-card"><div class="metric-label">Proyectos guardados</div><div class="metric-value" id="projectCount">0</div></div><div class="metric-card"><div class="metric-label">Plantillas disponibles</div><div class="metric-value" id="templateCount">20</div></div><div class="metric-card"><div class="metric-label">Estado</div><div class="metric-value is-compact" id="homeSaveStatus">Listo para trabajar</div></div></div><div class="view-heading"><div><h2>Continúa tu trabajo</h2><p>Abre un proyecto existente o crea una investigación nueva.</p></div><button type="button" class="primary-btn" data-action="new-project">＋ Nuevo proyecto</button></div><div id="recentProjects" class="project-grid"></div><div class="resource-grid mt-16"><article class="resource-card"><div class="mini-icon">✎</div><h3>Generador académico</h3><p>Define tema, enfoque, nivel, fuentes, estructura y criterios de calidad para construir un prompt personalizado.</p><button type="button" class="secondary-btn" data-action="go-view" data-target="generator">Abrir generador →</button></article></div></section>
-    <section class="view" id="projectsView" role="tabpanel" aria-labelledby="tab-projects" tabindex="-1" hidden><div class="view-heading"><div><h2>Mis proyectos</h2><p>Cada proyecto conserva su configuración y el prompt editado.</p></div><button type="button" class="primary-btn" data-action="new-project">＋ Nuevo proyecto</button></div><div class="project-toolbar"><input id="projectSearch" type="search" placeholder="Buscar proyecto por nombre o tema…" aria-label="Buscar proyectos"><button type="button" class="secondary-btn" data-action="export-backup">Exportar copia</button><button type="button" class="secondary-btn" onclick="document.getElementById('projectImport').click()">Importar copia</button><input type="file" id="projectImport" accept=".json,application/json" hidden></div><div id="allProjects" class="project-grid"></div></section>
-    <section class="view" id="templatesView" role="tabpanel" aria-labelledby="tab-templates" tabindex="-1" hidden><div class="view-heading"><div><h2>Plantillas académicas</h2><p>Empieza con una estructura adecuada para el tipo de trabajo.</p></div></div><div id="templateGrid" class="project-grid"></div></section>
-    <section class="view" id="settingsView" role="tabpanel" aria-labelledby="tab-settings" tabindex="-1" hidden><div class="view-heading"><div><h2>Configuración</h2><p>Administra el tema, los datos guardados y las copias de seguridad de tu espacio de investigación.</p></div></div><div class="card"><div class="section-title">1. Apariencia</div><div class="group"><label for="settingTheme">Tema de la aplicación</label><select id="settingTheme"><option value="dark">Oscuro</option><option value="light">Claro</option><option value="system">Seguir el sistema</option></select></div><div class="hint" style="margin-top:8px">El cambio se aplica de inmediato.</div></div><div class="card mt-18"><div class="section-title">2. Almacenamiento y datos</div><p>Tus proyectos, historial y configuracion se guardan en <strong>IndexedDB</strong> de este navegador (no se envían a ningún servidor).</p><div class="group"><label>Estado del almacenamiento</label><div id="settingsInfo" class="desc">Cargando…</div></div><div class="inline-actions mt-16"><button type="button" class="primary-btn" data-action="settings-export">📤 Exportar todo (JSON)</button><button type="button" class="secondary-btn" data-action="settings-import">📥 Importar JSON</button><button type="button" class="secondary-btn" onclick="document.getElementById('settingsImportFile').click()">Seleccionar archivo…</button><input type="file" id="settingsImportFile" accept=".json,application/json" hidden></div></div>        <div class="card mt-18"><div class="section-title">3. Sincronización con Google Sheets</div><p class="hint">Sube y descarga tus proyectos, fuentes y configuración en una hoja de cálculo de Google propia. Necesitas desplegar un Google Apps Script como web app y pegar aquí su URL y un token de acceso.</p><div class="group"><label for="settingSheetUrl">URL del web app (Google Apps Script)</label><input id="settingSheetUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec" /></div><div class="group"><label for="settingSheetToken">Token de acceso</label><input id="settingSheetToken" type="password" placeholder="Token que definiste en el script" /></div><div class="inline-actions mt-16"><button type="button" class="primary-btn" data-action="settings-save-sheet-config">💾 Guardar conexión</button><button type="button" class="secondary-btn" data-action="settings-test-sheets">🔌 Probar conexión</button></div><div class="inline-actions mt-13"><button type="button" class="primary-btn" data-action="settings-push-sheets">⬆️ Subir a Google Sheets</button><button type="button" class="secondary-btn" data-action="settings-pull-sheets">⬇️ Descargar desde Google Sheets</button></div><div id="settingsSheetStatus" class="desc" style="margin-top:10px"></div></div><div class="card mt-18"><div class="section-title">4. Zona de peligro</div><p class="hint">Estas acciones no se pueden deshacer.</p><div class="inline-actions"><button type="button" class="danger-btn" data-action="settings-clear">🗑️ Eliminar todos los datos</button></div></div></section>
-    <section class="view" id="generatorView" role="tabpanel" aria-labelledby="tab-generator" tabindex="-1" hidden><div class="project-bar" id="projectBar"><div><span class="project-bar-label" id="projectBarLabel">Proyecto activo</span><strong id="projectBarName">—</strong></div><div class="project-bar-actions"><button type="button" class="secondary-btn" id="projectBarRename" data-action="rename-active">Renombrar</button><button type="button" class="primary-btn" id="projectBarSave" data-action="save-as-project" hidden>Guardar como proyecto</button></div></div><div class="layout">
-      <section class="card">
-        <h2>1. Configura la investigación</h2>
-
-        <div class="preset-bar">
-          <select id="presetSelect" aria-label="Configuraciones guardadas"></select>
-          <button type="button" class="secondary-btn" id="presetApply" disabled>Aplicar</button>
-          <button type="button" class="secondary-btn" id="presetSave">Guardar actual</button>
-          <button type="button" class="danger-btn" id="presetDelete" disabled>Eliminar</button>
-        </div>
-
-        <div class="group">
-          <label for="topic">Tema de investigación</label>
-          <input id="topic" type="text" placeholder="Ej. Impacto de la inteligencia artificial en la educación superior" />
-          <div id="historyContainer" class="history-container"></div>
-        </div>
-
-        <div class="two-col">
-          <div class="group">
-            <label for="workType">Tipo de trabajo</label>
-            <select id="workType"></select>
-            <span class="hint">La estructura cambia automáticamente según el tipo seleccionado.</span>
-          </div>
-          <div class="group">
-            <label for="approach">Enfoque / tipo metodológico</label>
-            <select id="approach">
-              <option>Cualitativa</option>
-              <option>Cuantitativa</option>
-              <option>Mixta</option>
-              <option>Exploratoria</option>
-              <option>Descriptiva</option>
-              <option>Explicativa</option>
-            </select>
+    <section class="hero">
+      <div class="hero-row">
+        <div>
+          <span class="eyebrow">🎓 GENERADOR ACADÉMICO</span>
+          <h1>Generador de Investigaciones</h1>
+          <p class="subtitle">Define tema, enfoque, nivel, fuentes y estructura para construir un prompt personalizado. Todo se guarda en este navegador.</p>
+          <div class="hero-actions">
+            <button type="button" class="primary-btn" data-action="go-view" data-target="generator">＋ Nueva investigación</button>
+            <button type="button" class="secondary-btn" data-action="go-view" data-target="historial">📜 Ver historial</button>
           </div>
         </div>
+        <button type="button" class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Cambiar tema">🌙</button>
+      </div>
+    </section>
 
-        <div class="two-col">
-          <div class="group">
-            <label for="level">Nivel académico</label>
-            <select id="level">
-              <option>Secundaria</option>
-              <option selected>Universitario</option>
-              <option>Técnico / tecnológico</option>
-              <option>Posgrado</option>
-              <option>Otro</option>
-            </select>
-          </div>
-          <div class="group">
-            <label for="citation">Norma de citación</label>
-            <select id="citation">
-              <option selected>APA 7</option>
-              <option>MLA 9</option>
-              <option>Chicago</option>
-              <option>Vancouver</option>
-              <option>IEEE</option>
-              <option>Sin norma específica</option>
-            </select>
-          </div>
-        </div>
+    <nav class="app-nav" role="tablist" aria-label="Secciones de la aplicación">
+      <button type="button" class="nav-btn active" role="tab" id="tab-generator" data-view="generator" aria-controls="generatorView" aria-selected="true" tabindex="0">✎ Generador</button>
+      <button type="button" class="nav-btn" role="tab" id="tab-historial" data-view="historial" aria-controls="historialView" aria-selected="false" tabindex="-1">📜 Historial</button>
+    </nav>
 
-        <div class="three-col">
-          <div class="group">
-            <label for="sources">Fuentes mínimas</label>
-            <input id="sources" type="number" min="1" max="100" value="10" />
-          </div>
-          <div class="group">
-            <label for="years">Rango temporal</label>
-            <select id="years">
-              <option>Últimos 5 años</option>
-              <option selected>Últimos 10 años</option>
-              <option>Últimos 15 años</option>
-              <option>Sin límite, priorizar actualidad</option>
-              <option>Periodo específico indicado por el usuario</option>
-            </select>
-          </div>
-          <div class="group">
-            <label for="language">Idioma de respuesta</label>
-            <select id="language">
-              <option selected>Español</option>
-              <option>Inglés</option>
-              <option>Portugués</option>
-              <option>Otro / el de la fuente</option>
-            </select>
-          </div>
-        </div>
+    <section class="view" id="generatorView" role="tabpanel" aria-labelledby="tab-generator" tabindex="-1">
+      <div class="layout">
+        <section class="card">
+          <h2>1. Configura la investigación</h2>
 
-        <div class="two-col">
           <div class="group">
-            <label for="context">País, institución o contexto</label>
-            <input id="context" type="text" placeholder="Ej. Colombia, educación pública" />
+            <label for="topic">Tema de investigación</label>
+            <input id="topic" type="text" placeholder="Ej. Impacto de la inteligencia artificial en la educación superior" />
+            <div id="historyContainer" class="history-container"></div>
           </div>
-          <div class="group">
-            <label for="question">Pregunta de investigación (opcional)</label>
-            <input id="question" type="text" placeholder="Ej. ¿Cómo influye...?" />
-          </div>
-        </div>
 
-        <div class="group">
-          <label for="depth">Profundidad de la investigación</label>
-          <select id="depth">
-            <option>Académica básica</option>
-            <option selected>Académica profunda</option>
-            <option>Exhaustiva / nivel tesis</option>
-          </select>
-        </div>
-
-        <div class="desc" id="typeDescription"></div>
-
-        <div id="structurePanel">
-          <div class="section-title">2. Estructura del trabajo</div>
-          <label>Usa ▲ y ▼ para reordenar · clic en la sección para activar/desactivar</label>
-          <div id="chipsContainer" class="chips-container" role="list" aria-label="Estructura del trabajo"></div>
-          <div class="drag-note">Las secciones desactivadas no se incluirán en el prompt. El orden de la lista será el orden del prompt.</div>
-
-          <div class="group mt-13">
-            <div class="inline-actions">
-              <input id="customInput" type="text" placeholder="Nueva sección personalizada..." />
-              <button class="action btn-add" onclick="addStructure()">Añadir sección</button>
-              <button class="action btn-reset" onclick="resetStructures()">Restaurar estructura</button>
+          <div class="two-col">
+            <div class="group">
+              <label for="workType">Tipo de trabajo</label>
+              <select id="workType"></select>
+              <span class="hint">La estructura cambia automáticamente según el tipo seleccionado.</span>
+            </div>
+            <div class="group">
+              <label for="approach">Enfoque / tipo metodológico</label>
+              <select id="approach">
+                <option>Cualitativa</option>
+                <option>Cuantitativa</option>
+                <option>Mixta</option>
+                <option>Exploratoria</option>
+                <option>Descriptiva</option>
+                <option>Explicativa</option>
+              </select>
             </div>
           </div>
-        </div>
 
-        <div id="basicModeInfo" class="basic-mode-info" hidden>
-          <div class="section-title">2. Investigación libre</div>
-          <div class="basic-box">
-            <div class="basic-icon">🔎</div>
-            <div>
-              <strong>Sin estructura académica fija</strong>
-              <p>La IA debe decidir qué aspectos son importantes según el tema. No debe forzar Introducción, Justificación, Marco teórico, Metodología o Conclusiones si no aportan valor. La investigación debe ser detallada, profunda, organizada por los temas que realmente correspondan y sustentada con fuentes verificables.</p>
+          <div class="two-col">
+            <div class="group">
+              <label for="level">Nivel académico</label>
+              <select id="level">
+                <option>Secundaria</option>
+                <option selected>Universitario</option>
+                <option>Técnico / tecnológico</option>
+                <option>Posgrado</option>
+                <option>Otro</option>
+              </select>
+            </div>
+            <div class="group">
+              <label for="citation">Norma de citación</label>
+              <select id="citation">
+                <option selected>APA 7</option>
+                <option>MLA 9</option>
+                <option>Chicago</option>
+                <option>Vancouver</option>
+                <option>IEEE</option>
+                <option>Sin norma específica</option>
+              </select>
             </div>
           </div>
-        </div>
 
-        <div class="section-title">Reglas de calidad</div>
-        <div class="check-row">
-          <input type="checkbox" id="realSources" checked />
-          <label for="realSources">Exigir fuentes reales y verificables, sin inventar referencias ni URLs.</label>
-        </div>
-        <div class="check-row">
-          <input type="checkbox" id="primarySources" checked />
-          <label for="primarySources">Priorizar fuentes primarias, oficiales, académicas y repositorios confiables.</label>
-        </div>
-        <div class="check-row">
-          <input type="checkbox" id="tables" checked />
-          <label for="tables">Usar tablas, comparaciones o listas cuando ayuden a entender la evidencia.</label>
-        </div>
-        <div class="check-row">
-          <input type="checkbox" id="limitations" checked />
-          <label for="limitations">Separar claramente evidencia, interpretación, limitaciones e incertidumbres.</label>
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="prompt-top">
-          <h2>3. Prompt generado</h2>
-          <button class="action btn-reset" onclick="regeneratePrompt()">↻ Regenerar</button>
-        </div>
-        <textarea id="finalPrompt" aria-label="Prompt generado y editable"></textarea>
-        <div id="promptStats" class="prompt-stats"></div>
-        <button class="action btn-copy" onclick="copyPrompt()">📋 Copiar prompt al portapapeles</button>
-
-        <div class="prompt-actions">
-          <button class="action btn-download" onclick="downloadPrompt()">⬇ Descargar .txt</button>
-          <button class="action btn-download" onclick="exportMarkdown()">⬇ Descargar .md</button>
-          <button class="action btn-export" onclick="exportConfig()">📤 Exportar JSON</button>
-          <button class="action btn-import" onclick="document.getElementById('fileInput').click()">📥 Importar JSON</button>
-          <input type="file" id="fileInput" accept=".json,application/json" onchange="importConfig(event)" />
-        </div>
-
-        <div class="status">
-          <span><span class="dot"></span>Configuración guardada localmente</span>
-          <span id="saveStatus">Listo</span>
-        </div>
-
-        <div class="engine-section">
-          <div class="section-title">4. Motores de búsqueda con IA</div>
-          <p class="hint" style="margin:-4px 0 10px">Cada motor recibe el <strong>prompt completo</strong> de la caja «3. Prompt generado» (o el que hayas editado). Gemini no acepta texto automático: pégalo con <strong>Ctrl/Cmd+V</strong>.</p>
-          <div class="btn-grid">
-            <button class="btn-engine" onclick="runSearch('google')" title="Abrir Google con el tema y copiar prompt completo">
-              Google Search 🔍
-              <span class="source-tag">Google · copia el prompt</span>
-            </button>
-            <button class="btn-engine" onclick="runSearch('perplexity')" title="Abrir Perplexity con el prompt completo listo">
-              Perplexity 🌐
-              <span class="source-tag">Investigación con fuentes</span>
-            </button>
-            <button class="btn-engine" onclick="runSearch('brave')" title="Abrir Brave con el prompt completo listo">
-              Brave AI 🦁
-              <span class="source-tag">Búsqueda y respuestas</span>
-            </button>
+          <div class="three-col">
+            <div class="group">
+              <label for="sources">Fuentes mínimas</label>
+              <input id="sources" type="number" min="1" max="100" value="10" />
+            </div>
+            <div class="group">
+              <label for="years">Rango temporal</label>
+              <select id="years">
+                <option>Últimos 5 años</option>
+                <option selected>Últimos 10 años</option>
+                <option>Últimos 15 años</option>
+                <option>Sin límite, priorizar actualidad</option>
+                <option>Periodo específico indicado por el usuario</option>
+              </select>
+            </div>
+            <div class="group">
+              <label for="language">Idioma de respuesta</label>
+              <select id="language">
+                <option selected>Español</option>
+                <option>Inglés</option>
+                <option>Portugués</option>
+                <option>Otro / el de la fuente</option>
+              </select>
+            </div>
           </div>
 
-          <div class="section-title">Chatbots directos</div>
-          <div class="btn-grid">
-            <button class="btn-engine" onclick="runSearch('chatgpt')" title="Abrir ChatGPT con el prompt completo listo">
-              ChatGPT 🤖
-              <span class="source-tag">Análisis y redacción</span>
-            </button>
-            <button class="btn-engine" onclick="runSearch('gemini')" title="Copiar el prompt completo y abrir Gemini">
-              Gemini ✨
-              <span class="source-tag">Pega el prompt con Ctrl/Cmd + V</span>
-            </button>
+          <div class="two-col">
+            <div class="group">
+              <label for="context">País, institución o contexto</label>
+              <input id="context" type="text" placeholder="Ej. Colombia, educación pública" />
+            </div>
+            <div class="group">
+              <label for="question">Pregunta de investigación (opcional)</label>
+              <input id="question" type="text" placeholder="Ej. ¿Cómo influye...?" />
+            </div>
           </div>
-        </div>
 
-        <div id="enginePanel" class="notice" hidden>
-          <span id="enginePanelText"></span>
-          <div class="notice-actions">
-            <button type="button" class="primary-btn" id="engineCopyBtn">📋 Copiar prompt de nuevo</button>
-            <button type="button" class="secondary-btn" id="engineCloseBtn">Cerrar</button>
+          <div class="group">
+            <label for="depth">Profundidad de la investigación</label>
+            <select id="depth">
+              <option>Académica básica</option>
+              <option selected>Académica profunda</option>
+              <option>Exhaustiva / nivel tesis</option>
+            </select>
           </div>
-        </div>
 
-        <div class="desc mt-18">
-          <strong>Consejo:</strong> para una investigación seria, revisa las fuentes que entregue la IA,
-          abre los documentos originales y conserva los enlaces/DOI reales antes de citar.
+          <div class="desc" id="typeDescription"></div>
+
+          <div id="structurePanel">
+            <div class="section-title">2. Estructura del trabajo</div>
+            <label>Usa ▲ y ▼ para reordenar · clic en la sección para activar/desactivar</label>
+            <div id="chipsContainer" class="chips-container" role="list" aria-label="Estructura del trabajo"></div>
+            <div class="drag-note">Las secciones desactivadas no se incluirán en el prompt. El orden de la lista será el orden del prompt.</div>
+
+            <div class="group mt-13">
+              <div class="inline-actions">
+                <input id="customInput" type="text" placeholder="Nueva sección personalizada..." />
+                <button class="action btn-add" onclick="addStructure()">Añadir sección</button>
+                <button class="action btn-reset" onclick="resetStructures()">Restaurar estructura</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="basicModeInfo" class="basic-mode-info" hidden>
+            <div class="section-title">2. Investigación libre</div>
+            <div class="basic-box">
+              <div class="basic-icon">🔎</div>
+              <div>
+                <strong>Sin estructura académica fija</strong>
+                <p>La IA debe decidir qué aspectos son importantes según el tema. No debe forzar Introducción, Justificación, Marco teórico, Metodología o Conclusiones si no aportan valor.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-title">Reglas de calidad</div>
+          <div class="check-row">
+            <input type="checkbox" id="realSources" checked />
+            <label for="realSources">Exigir fuentes reales y verificables, sin inventar referencias ni URLs.</label>
+          </div>
+          <div class="check-row">
+            <input type="checkbox" id="primarySources" checked />
+            <label for="primarySources">Priorizar fuentes primarias, oficiales, académicas y repositorios confiables.</label>
+          </div>
+          <div class="check-row">
+            <input type="checkbox" id="tables" checked />
+            <label for="tables">Usar tablas, comparaciones o listas cuando ayuden a entender la evidencia.</label>
+          </div>
+          <div class="check-row">
+            <input type="checkbox" id="limitations" checked />
+            <label for="limitations">Separar claramente evidencia, interpretación, limitaciones e incertidumbres.</label>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="prompt-top">
+            <h2>3. Prompt generado</h2>
+            <button class="action btn-reset" onclick="regeneratePrompt()">↻ Regenerar</button>
+          </div>
+          <textarea id="finalPrompt" aria-label="Prompt generado y editable"></textarea>
+          <div id="promptStats" class="prompt-stats"></div>
+          <button class="action btn-copy" onclick="copyPrompt()">📋 Copiar prompt al portapapeles</button>
+
+          <div class="prompt-actions">
+            <button class="action btn-copy" onclick="copyPrompt()">📋 Copiar prompt al portapapeles</button>
+            <button class="action btn-export" onclick="exportConfig()">📤 Exportar JSON</button>
+            <button class="action btn-import" onclick="document.getElementById('fileInput').click()">📥 Importar JSON</button>
+            <input type="file" id="fileInput" accept=".json,application/json" onchange="importConfig(event)" />
+          </div>
+
+          <div class="status">
+            <span><span class="dot"></span>Guardado localmente</span>
+            <span id="saveStatus">Listo</span>
+          </div>
+
+          <div class="engine-section">
+            <div class="section-title">4. Motores de búsqueda con IA</div>
+            <p class="hint" style="margin:-4px 0 10px">Cada motor recibe el <strong>prompt completo</strong> de la caja «3. Prompt generado» (o el que hayas editado). Gemini no acepta texto automático: pégalo con <strong>Ctrl/Cmd+V</strong>.</p>
+            <div class="btn-grid">
+              <button class="btn-engine" onclick="runSearch('google')" title="Abrir Google con el tema y copiar prompt completo">
+                Google Search 🔍
+                <span class="source-tag">Google · copia el prompt</span>
+              </button>
+              <button class="btn-engine" onclick="runSearch('perplexity')" title="Abrir Perplexity con el prompt completo listo">
+                Perplexity 🌐
+                <span class="source-tag">Investigación con fuentes</span>
+              </button>
+              <button class="btn-engine" onclick="runSearch('brave')" title="Abrir Brave con el prompt completo listo">
+                Brave AI 🦁
+                <span class="source-tag">Búsqueda y respuestas</span>
+              </button>
+              <button class="btn-engine" onclick="runSearch('bing')" title="Abrir Bing con el prompt completo listo">
+                Bing AI 🌐
+                <span class="source-tag">Búsqueda y respuestas</span>
+              </button>
+            </div>
+
+            <div class="section-title">Chatbots directos</div>
+            <div class="btn-grid">
+              <button class="btn-engine" onclick="runSearch('chatgpt')" title="Abrir ChatGPT con el prompt completo listo">
+                ChatGPT 🤖
+                <span class="source-tag">Análisis y redacción</span>
+              </button>
+              <button class="btn-engine" onclick="runSearch('gemini')" title="Copiar el prompt completo y abrir Gemini">
+                Gemini ✨
+                <span class="source-tag">Pega el prompt con Ctrl/Cmd + V</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="enginePanel" class="notice" hidden>
+            <span id="enginePanelText"></span>
+            <div class="notice-actions">
+              <button type="button" class="primary-btn" id="engineCopyBtn">📋 Copiar prompt de nuevo</button>
+              <button type="button" class="secondary-btn" id="engineCloseBtn">Cerrar</button>
+            </div>
+          </div>
+
+          <div class="desc mt-18">
+            <strong>Consejo:</strong> para una investigación seria, revisa las fuentes que entregue la IA,
+            abre los documentos originales y conserva los enlaces/DOI reales antes de citar.
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="view" id="historialView" role="tabpanel" aria-labelledby="tab-historial" tabindex="-1" hidden>
+      <div class="view-heading">
+        <div>
+          <h2>Historial de investigaciones</h2>
+          <p>Tus investigaciones guardadas en el localStorage de este navegador.</p>
         </div>
-      </section>
-    </div></section>
-    <footer class="app-footer">Navegador Académico · versión 9 (18 oct 2026) · HTML, CSS y JavaScript · Los datos se guardan en IndexedDB de este navegador.</footer>
+        <button type="button" class="primary-btn" data-action="go-view" data-target="generator">＋ Nueva investigación</button>
+      </div>
+      <div id="historialGrid" class="project-grid"></div>
+    </section>
+
+    <footer class="app-footer">Generador Académico · Los datos se guardan en localStorage de este navegador.</footer>
   </main>
 
   <div id="toastRegion" class="toast-region" role="status" aria-live="polite"></div>
@@ -257,7 +280,6 @@
     </form>
   </dialog>
 
-<script src="app.js"></script>
-
+  <script src="app.js"></script>
 </body>
 </html>

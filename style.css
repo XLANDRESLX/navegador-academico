@@ -144,6 +144,7 @@
     .btn-copy{background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--on-accent);width:100%;margin-top:10px}
     .btn-download{background:rgba(88,214,141,.14);color:var(--ok);border:1px solid rgba(88,214,141,.24)!important}
     .btn-export,.btn-import{background:var(--card2);color:var(--text);border:1px solid var(--border)!important}
+    .btn-primary-save{background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--on-accent);width:100%;margin-top:10px}
     #fileInput{display:none}
 
     .prompt-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
