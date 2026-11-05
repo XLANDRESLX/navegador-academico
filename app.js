@@ -298,7 +298,6 @@ const TYPE_DESC = {
 };
 
 const STORAGE_KEY = "generadorInvestigacionV2";
-const HISTORY_KEY = "generadorInvestigacionHistory";
 const HISTORIAL_KEY = "generadorInvestigacionHistorial";
 const THEME_KEY = "generadorInvestigacionTheme";
 
@@ -883,6 +882,7 @@ function generatePrompt() {
   autoResize();
   updateStats(text);
   autoSaveHistorial();
+  renderRecientes();
 }
 
 /* Guarda automáticamente en el historial con toda la configuración del momento. */
@@ -907,6 +907,7 @@ function autoSaveHistorial() {
     if (idx >= 0) historial[idx] = entry; else historial.unshift(entry);
     safeWrite(HISTORIAL_KEY, historial.slice(0, 100));
     renderHistorial();
+    renderRecientes();
   }, 500);
 }
 
@@ -916,6 +917,7 @@ function onPromptEdit() {
   updateStats($("finalPrompt").value);
   saveState();
   autoSaveHistorial();
+  renderRecientes();
 }
 
 function regeneratePrompt() {
@@ -1111,52 +1113,34 @@ function captureCurrentState() {
   };
 }
 
-/* Historial de temas recientes (chips bajo el tema) */
-function loadHistory() {
-  return safeRead(HISTORY_KEY, []);
-}
-function saveHistory(topic) {
-  if (!topic) return;
-  let history = safeRead(HISTORY_KEY, []);
-  history = (Array.isArray(history) ? history : []).filter(
-    (x) => typeof x === "string" && x.toLowerCase() !== topic.toLowerCase(),
-  );
-  history.unshift(topic);
-  safeWrite(HISTORY_KEY, history.slice(0, 7));
-  renderHistory();
-}
-function renderHistory() {
-  const items = loadHistory();
+/* Chips recientes: muestra los últimos 3 temas del historial de investigaciones */
+function renderRecientes() {
+  const historial = loadHistorial();
+  const recientes = historial.slice(0, 3);
   const box = $("historyContainer");
-  if (!items.length) {
+  if (!box) return;
+  if (!recientes.length) {
     box.innerHTML = "";
     return;
   }
   box.innerHTML =
     `<span class="history-label">Recientes:</span>` +
-    items
+    recientes
       .map(
-        (x, i) =>
-          `<span class="history-chip" data-h="${i}" role="button" tabindex="0">${escapeHtml(x)}</span>`,
+        (e, i) =>
+          `<span class="history-chip" data-index="${i}" role="button" tabindex="0">${escapeHtml(e.topic || e.name || "Sin tema")}</span>`,
       )
       .join("");
-  box.querySelectorAll("[data-h]").forEach((el) => {
-    const topic = items[Number(el.dataset.h)];
-    el.addEventListener("click", () => useHistory(topic));
+  box.querySelectorAll("[data-index]").forEach((el) => {
+    const idx = Number(el.dataset.index);
+    el.addEventListener("click", () => loadHistorialEntry(idx));
     el.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        useHistory(topic);
+        loadHistorialEntry(idx);
       }
     });
   });
-}
-function useHistory(topic) {
-  $("topic").value = topic;
-  userEditingPrompt = false;
-  generatePrompt();
-  saveState();
-  $("topic").focus();
 }
 
 /* Historial de investigaciones guardadas */
@@ -1238,6 +1222,7 @@ function loadHistorialEntry(index) {
   autoResize();
   updateStats($("finalPrompt").value);
   saveState();
+  renderRecientes();
   showView("generator");
   showToast("Investigación cargada.");
 }
@@ -1249,6 +1234,7 @@ function deleteHistorialEntry(index) {
   historial.splice(index, 1);
   safeWrite(HISTORIAL_KEY, historial);
   renderHistorial();
+  renderRecientes();
   showToast("Eliminado del historial.", {
     action: {
       label: "Deshacer",
@@ -1265,9 +1251,8 @@ function clearHistorial() {
   if (!confirm("Esto borrará TODO el historial de investigaciones y los temas recientes. No se puede deshacer. ¿Continuar?"))
     return;
   safeWrite(HISTORIAL_KEY, []);
-  safeWrite(HISTORY_KEY, []);
   renderHistorial();
-  renderHistory();
+  renderRecientes();
   showToast("Historial eliminado por completo.");
 }
 
@@ -1372,7 +1357,6 @@ function runSearch(engine) {
     $("topic").focus();
     return;
   }
-  saveHistory(topic);
   const full = $("finalPrompt").value.trim() || buildPrompt();
   const encFull = encodeURIComponent(full);
   const encTopic = encodeURIComponent(topic);
@@ -1616,7 +1600,6 @@ function initPlatform() {
   $("topic").addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      saveHistory($("topic").value.trim());
     }
   });
   $("customInput").addEventListener("keydown", (e) => {
@@ -1666,7 +1649,6 @@ function bindInputs() {
   $("topic").addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      saveHistory($("topic").value.trim());
     }
   });
   $("customInput").addEventListener("keydown", (e) => {
@@ -1686,7 +1668,7 @@ function init() {
   restoreState();
   $("typeDescription").textContent = TYPE_DESC[$("workType").value] || "";
   updateModeUI();
-  renderHistory();
+  renderRecientes();
   renderStructures();
   bindInputs();
   generatePrompt();
