@@ -1262,10 +1262,12 @@ function deleteHistorialEntry(index) {
 }
 
 function clearHistorial() {
-  if (!confirm("Esto borrará TODO el historial de investigaciones guardadas. No se puede deshacer. ¿Continuar?"))
+  if (!confirm("Esto borrará TODO el historial de investigaciones y los temas recientes. No se puede deshacer. ¿Continuar?"))
     return;
   safeWrite(HISTORIAL_KEY, []);
+  safeWrite(HISTORY_KEY, []);
   renderHistorial();
+  renderHistory();
   showToast("Historial eliminado por completo.");
 }
 
