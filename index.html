@@ -255,7 +255,10 @@
           <h2>Historial de investigaciones</h2>
           <p>Tus investigaciones guardadas en el localStorage de este navegador.</p>
         </div>
-        <button type="button" class="primary-btn" data-action="go-view" data-target="generator">＋ Nueva investigación</button>
+        <div class="historial-actions">
+          <button type="button" class="primary-btn" data-action="go-view" data-target="generator">＋ Nueva investigación</button>
+          <button type="button" class="danger-btn" data-action="clear-historial">🗑️ Eliminar todo el historial</button>
+        </div>
       </div>
       <div id="historialGrid" class="project-grid"></div>
     </section>

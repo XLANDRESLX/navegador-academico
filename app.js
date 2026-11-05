@@ -1220,6 +1220,7 @@ function renderHistorial() {
         "</div>" +
         '<div class="project-actions">' +
         '<button type="button" class="primary-btn" data-action="load-historial">Cargar</button>' +
+        '<button type="button" class="danger-btn" data-action="delete-historial">Eliminar</button>' +
         "</div></article>",
     )
     .join("");
@@ -1258,6 +1259,14 @@ function deleteHistorialEntry(index) {
       },
     },
   });
+}
+
+function clearHistorial() {
+  if (!confirm("Esto borrará TODO el historial de investigaciones guardadas. No se puede deshacer. ¿Continuar?"))
+    return;
+  safeWrite(HISTORIAL_KEY, []);
+  renderHistorial();
+  showToast("Historial eliminado por completo.");
 }
 
 /* ---------- utilidades ---------- */
@@ -1556,6 +1565,8 @@ function showView(name) {
 const ACTIONS = {
   "go-view": (_id, el) => showView(el.dataset.target),
   "load-historial": (id) => loadHistorialEntry(Number(id)),
+  "delete-historial": (id) => deleteHistorialEntry(Number(id)),
+  "clear-historial": () => clearHistorial(),
   "close-dialog": (_id, el) => el.closest("dialog").close(),
 };
 
